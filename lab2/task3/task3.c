@@ -178,7 +178,7 @@ double gamma_range(double accuracy) {
 		k++;
 	} while (fabs(now - prev) > accuracy);
 
-	return -pow(pi, 2) / 6.0 + now;
+	return -pow(M_PI, 2) / 6.0 + now;
 }
 
 int is_prime(int number) {

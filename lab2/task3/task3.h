@@ -1,7 +1,6 @@
 #ifndef TASK3_H
 #define TASK3_H
 
-#define pi 3.14159265358979323846
 #define eps 0.000000000000000000001
 
 double factorial(double n);
