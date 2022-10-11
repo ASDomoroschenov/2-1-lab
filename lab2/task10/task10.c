@@ -28,28 +28,28 @@ enum ERRORS {
 	INVALID_NUMBER = -4
 };
 
-int is_prime(int number);
-int get_dividers(int number, int **dividers, int *length);
-int fractional_part_to_int(double number);
-int have_div_5(double number);
-int have_div_2(double number);
+int is_prime(unsigned long long number);
+int get_dividers(unsigned long long number, int **dividers, int *length);
+unsigned long long fractional_part_to_int(double number);
+int have_div_5(int *dividers, int length);
+int have_div_2(int *dividers, int length);
 int have_performance(double number, int notation);
 int representation_of_fractions(int notation, int count, ...);
 
 int main() {
-	
+	representation_of_fractions(4, 3, (double)0.5, (double)0.15, (double)0.2);	
 
 	return 0;
 }
 
-int is_prime(int number) {
+int is_prime(unsigned long long number) {
 	number = abs(number);
 	
 	if (number == 1) {
 		return 0;
 	}
 
-	for (int i = 2; i <= sqrt(number); i++) {
+	for (unsigned long long i = 2; i <= sqrt(number); i++) {
 		if (number % i == 0) {
 			return 0;
 		}
@@ -58,7 +58,7 @@ int is_prime(int number) {
 	return 1;
 }
 
-int get_dividers(int number, int **dividers, int *length) {
+int get_dividers(unsigned long long number, int **dividers, int *length) {
 	int size = 0;
 	int index = 0;
 
@@ -66,7 +66,7 @@ int get_dividers(int number, int **dividers, int *length) {
 		free(*dividers);
 	}
 
-	for (int i = 2; i <= number; i ++) {
+	for (unsigned long long i = 2; i <= number; i ++) {
 		if (number % i == 0 && is_prime(i)) {
 			if (index == size) {
 				size = ((size != 0) ? (size * 2) : 1);
@@ -85,31 +85,43 @@ int get_dividers(int number, int **dividers, int *length) {
 	return SUCCESS;
 }
 
-int fractional_part_to_int(double number) {
+unsigned long long fractional_part_to_int(double number) {
 	while (fabs(number - (long long)number) > eps) {
 		number *= 10;
 	}
 
-	return (int)number;
+	return (unsigned long long)number;
 }
 
-int have_div_5(double number) {
+int have_div_5(int *dividers, int length) {
+	for (int i = 0; i < length; i++) {
+		if (dividers[i] == 5) {
+			return 1;
+		}
+	}
 
+	return 0;
 }
 
-int have_div_2(double number) {
-	
+int have_div_2(int *dividers, int length) {
+	for (int i = 0; i < length; i++) {
+		if (dividers[i] == 2) {
+			return 1;
+		}
+	}
+
+	return 0;
 }
 
 int have_performance(double number, int notation) {
-	long long fractional = fractional_part_to_int(number);
+	unsigned long long fractional = fractional_part_to_int(number);
 	int length_num = 0;
 	int length_not = 0;
 	int *dividers_num = NULL;
 	int *dividers_not = NULL;
 
 	if (get_dividers(fractional, &dividers_num, &length_num) == SUCCESS &&
-		get_dividers((long long)notation, &dividers_not, &length_not) == SUCCESS) {
+		get_dividers((unsigned long long)notation, &dividers_not, &length_not) == SUCCESS) {
 		if (have_div_5(dividers_not, length_not) && have_div_2(dividers_not, length_not)) {
 			free(dividers_num);
 			free(dividers_not);
