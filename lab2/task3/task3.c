@@ -17,12 +17,14 @@ double sqrt2_range(double accuracy);
 double for_gamma_limit(double k, double m);
 double gamma_limit(double accuracy);
 double gamma_range(double accuracy);
+double for_gamma_eq(double accuracy);
 double func_pi(double x);
 double func_exp(double x);
 double func_ln2(double x);
 double func_sqrt2(double x);
 double func_gamma(double x);
 double dichotomy_method(double (*func)(double), double begin, double end, double accuracy);
+int is_prime(int number);
 
 int main() {
 	printf("Exponent over limit: %.10lf\n", exp_limit((double)0.0000001));
@@ -42,7 +44,8 @@ int main() {
 	printf("Sqrt2 via Equation: %.10lf\n", dichotomy_method(func_sqrt2, (double)0.0, (double)2.0, 0.0001));
 	printf("\n");
 	printf("Gamma over limit: %.10lf\n", gamma_limit((double)0.0001));
-	printf("Gamma through series sum: %.10lf\n", gamma_range((double)0.00000000001));
+	printf("Gamma through series sum: %.10lf\n", gamma_range((double)0.00000001));
+	printf("Gamma via Equation: %.10lf\n", dichotomy_method(func_gamma, (double)0.0, (double)1.0, (double)0.00000001));
 
 	return 0;
 }
@@ -199,6 +202,52 @@ double gamma_range(double accuracy) {
 	} while (fabs(now - prev) > accuracy);
 
 	return -pow(pi, 2) / 6.0 + now;
+}
+
+int is_prime(int number) {
+	number = abs(number);
+	
+	if (number == 1) {
+		return 0;
+	}
+
+	for (int i = 2; i <= sqrt(number); i++) {
+		if (number % i == 0) {
+			return 0;
+		}
+	}
+
+	return 1;
+}
+
+double get_mult(int t) {
+	double mult = 1.0;
+
+	for (int i = 2; i <= t; i++) {
+		if (is_prime(i)) {
+			mult *= (i - 1.0) / i;
+		}
+	}
+
+	return mult;
+}
+
+double for_gamma_eq(double accuracy) {
+	double prev = 0.0;
+	double now = 0.0;
+	int t = 2;
+
+	do {
+		prev = now;
+		now = log(t) * get_mult(t);
+		t++;
+	} while (fabs(now - prev) > accuracy);
+
+	return now;
+}
+
+double func_gamma(double x) {
+	return exp(-x) - for_gamma_eq(0.0001);
 }
 
 double func_exp(double x) {
