@@ -2,100 +2,69 @@
 #include <stdlib.h>
 #include <math.h>
 #include <stdarg.h>
+#include <ctype.h>
 
-//Чтобы перевести дробную часть в СС, нужно умножать дробную часть на СС
-//и отбрасывать из результата целую часть, до тех пор, пока в дробной части
-//результата не будет 0(из этого и следует алгоритм)
+#define eps 0.00000000001
 
-//Под числом понимается часть числа после точки
+typedef struct {
+	unsigned long long numerator;
+	unsigned long long denominator;
+} Fraction;
 
-//Под делителями имеется в виду простые делители
-
-//Если СС имеет делитель 5, то чтобы число перевелось
-//нужно, чтобы число само имело делители только 2
-
-//Если СС имеет делитель 2, то чтобы число переволось
-//нужно, чтобы число само имело делители только 5
-
-//Если СС имеет делители 5 и 2, то любое число переведется
-
-#define eps 0.000000000000000000001
+typedef struct {
+	char *fraction;
+	int status;
+} Fraction_res;
 
 enum ERRORS {
 	NO_MEMORY = -1,
-	SUCCESS = -2,
+	INVALID_DOUBLE = -2,
 	INVALID_NOTATION = -3,
-	INVALID_NUMBER = -4
+	SUCCESS = -4
 };
 
-int is_prime(unsigned long long number);
-int get_dividers(unsigned long long number, int **dividers, int *length);
-unsigned long long fractional_part_to_int(double number);
-int have_div_5(int *dividers, int length);
-int have_div_2(int *dividers, int length);
-int have_performance(double number, int notation);
-int representation_of_fractions(int notation, int count, ...);
+int valid_double(char*);
+int valid_notation(int);
+int get_fraction_from_str(Fraction**, char*);
+Fraction *fraction_reduction(Fraction*);
+int has_representation(int, char*);
+int representation_fractions(Fraction_res **, int, int, ...);
+void output_res(Fraction_res*, int);
 
 int main() {
-	representation_of_fractions(4, 3, (double)0.5, (double)0.15, (double)0.2);	
-
-	return 0;
-}
-
-int is_prime(unsigned long long number) {
-	number = abs(number);
+	Fraction_res *res = NULL;
+	int exit_code = representation_fractions(&res, 5, 3, "0.1233333334", "0.125", "0.124");
 	
-	if (number == 1) {
-		return 0;
-	}
-
-	for (unsigned long long i = 2; i <= sqrt(number); i++) {
-		if (number % i == 0) {
-			return 0;
+	if (exit_code == SUCCESS) {
+		output_res(res, 3);
+	} else {
+		if (exit_code == NO_MEMORY) {
+			fprintf(stderr, "%s\n", "NO MEMORY: The system is out of memory");
+		}
+		if (exit_code == INVALID_DOUBLE) {
+			fprintf(stderr, "%s\n", "INVALID NUMBER: All numbers must be between 0 and 1");
+		}
+		if (exit_code == INVALID_NOTATION) {
+			fprintf(stderr, "%s\n", "INVALID NOTATION: Notation must be between 2 and 36");
 		}
 	}
 
-	return 1;
+	free(res);
+
+	return 0;
 }
 
-int get_dividers(unsigned long long number, int **dividers, int *length) {
-	int size = 0;
-	int index = 0;
-
-	if (*dividers) {
-		free(*dividers);
-	}
-
-	for (unsigned long long i = 2; i <= number; i ++) {
-		if (number % i == 0 && is_prime(i)) {
-			if (index == size) {
-				size = ((size != 0) ? (size * 2) : 1);
-				*dividers = (int*)realloc(*dividers, sizeof(int) * size);
-
-				if (!*dividers) {
-					return NO_MEMORY;
+int valid_double(char *number) {
+	char *ptr = number;
+	
+	if (isdigit(*ptr) && *ptr == '0') {
+		if (*++ptr == '.') {
+			while (*++ptr) {
+				if (!isdigit(*ptr)) {
+					return 0;
 				}
 			}
-			(*dividers)[index++] = i;
-		}
-	}
 
-	*length = index;
-
-	return SUCCESS;
-}
-
-unsigned long long fractional_part_to_int(double number) {
-	while (fabs(number - (long long)number) > eps) {
-		number *= 10;
-	}
-
-	return (unsigned long long)number;
-}
-
-int have_div_5(int *dividers, int length) {
-	for (int i = 0; i < length; i++) {
-		if (dividers[i] == 5) {
 			return 1;
 		}
 	}
@@ -103,106 +72,103 @@ int have_div_5(int *dividers, int length) {
 	return 0;
 }
 
-int have_div_2(int *dividers, int length) {
-	for (int i = 0; i < length; i++) {
-		if (dividers[i] == 2) {
-			return 1;
-		}
-	}
-
-	return 0;
+int valid_notation(int notation) {
+	return notation >= 2 && notation <= 36;
 }
 
-int have_performance(double number, int notation) {
-	unsigned long long fractional = fractional_part_to_int(number);
-	int length_num = 0;
-	int length_not = 0;
-	int *dividers_num = NULL;
-	int *dividers_not = NULL;
+int get_fraction_from_dbl(Fraction **fraction, char *number) {
+	if (valid_double(number)) {
+		unsigned long long numerator = 0;
+		unsigned long long denominator = 1;
+		char *ptr = number + 1;
 
-	if (get_dividers(fractional, &dividers_num, &length_num) == SUCCESS &&
-		get_dividers((unsigned long long)notation, &dividers_not, &length_not) == SUCCESS) {
-		if (have_div_5(dividers_not, length_not) && have_div_2(dividers_not, length_not)) {
-			free(dividers_num);
-			free(dividers_not);
+		*fraction = (Fraction*)malloc(sizeof(Fraction));
 
-			return 1;
-		}
-
-		if (have_div_5(dividers_not, length_not) && length_num == 1 && dividers_num[0] == 2) {
-			free(dividers_num);
-			free(dividers_not);
-
-			return 1;
-		}
-
-		if (have_div_2(dividers_not, length_not) && length_num == 1 && dividers_num[0] == 5) {
-			free(dividers_num);
-			free(dividers_not);
-
-			return 1;
-		}
-
-		if (dividers_num) {
-			free(dividers_num);
-		}
-
-		if (dividers_not) {
-			free(dividers_not);
-		}
-
-		return 0;
-	}
-
-	if (dividers_num) {
-		free(dividers_num);
-	}
-
-	if (dividers_not) {
-		free(dividers_not);
-	}
-
-	return NO_MEMORY;
-}
-
-void output_divs(int *dividers, int length) {
-	for (int i = 0; i < length; i++) {
-		printf("%d ", dividers[i]);
-	}
-	printf("\n");
-}
-
-int representation_of_fractions(int notation, int count, ...) {
-	if (notation >= 2 && notation <= 36) {
-		va_list args;
-		va_start(args, count);
-		double number;
-		int exit_code = 0;
-
-		for (int i = 0; i < count; i++) {
-			number = va_arg(args, double);
-
-			if (number > eps && number < 1.0) {
-				exit_code = have_performance(number, notation);
-
-				if (exit_code == NO_MEMORY) {
-					return NO_MEMORY;
-				} else {
-					if (exit_code == 1) {
-						printf("%lf - YES\n", number);
-					} else {
-						printf("%lf - NO\n", number);
-					}
-				}
-			} else {
-				return INVALID_NUMBER;
+		if (*fraction) {
+			while (*++ptr) {
+				numerator = numerator * 10 + (*ptr - '0');
+				denominator *= 10;
 			}
+ 		} else {
+			return NO_MEMORY;
 		}
 
-		va_end(args);
+		(*fraction)->numerator = numerator;
+		(*fraction)->denominator = denominator;
 
 		return SUCCESS;
 	}
 
+	return INVALID_DOUBLE;
+}
+
+Fraction *fraction_reduction(Fraction *fraction) {
+	int div = 2;
+
+	while (div <= sqrt(fraction->numerator) && div <= fraction->numerator) {
+		while (fraction->numerator % div == 0 && fraction->denominator % div == 0) {
+			fraction->numerator /= div;
+			fraction->denominator /= div;
+		}
+		div++;
+	}
+
+	return fraction;
+}
+
+int has_representation(int notation, char *number) {
+	Fraction *fraction = NULL;
+	int exit_code = get_fraction_from_dbl(&fraction, number);
+	
+	if (exit_code == SUCCESS) {
+		fraction = fraction_reduction(fraction);
+		int denominator = fraction->denominator;
+
+		while (denominator > 1) {
+			if (denominator % notation != 0) {
+				free(fraction);
+				return 0;
+			}
+			denominator /= notation;
+		}
+
+		free(fraction);
+
+		return 1;
+	}
+
+	return exit_code;
+}
+
+int representation_fractions(Fraction_res **res, int notation, int count, ...) {
+	if (valid_notation(notation)) {
+		*res = (Fraction_res*)malloc(sizeof(Fraction_res) * count);
+		char *number;
+		int res_func = 0;
+		va_list args;
+		va_start(args, count);
+
+		for (int i = 0; i < count; i++) {
+			number = va_arg(args, char*);
+			(*res)[i].fraction = number;
+			res_func = has_representation(notation, number);
+			if (res_func == 0 || res_func == 1) {
+				(*res)[i].status = res_func;
+			} else {
+				return res_func;
+			}
+		}
+		
+		return SUCCESS;
+	}
+
 	return INVALID_NOTATION;
+}
+
+void output_res(Fraction_res *res, int count) {
+	char *res_status[] = {"NO", "YES"};
+	
+	for (int i = 0; i < count; i++) {
+		printf("%s - %s\n", res[i].fraction, res_status[res[i].status]);
+	}
 }
