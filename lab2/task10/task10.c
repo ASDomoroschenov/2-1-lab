@@ -34,7 +34,12 @@ void output_res(Fraction_res*, int);
 int main() {
 	Fraction_res *res = NULL;
 	int exit_code = representation_fractions(&res, 5, 3, "0.1233333334", "0.125", "0.124");
-	
+		
+	Fraction *test;
+	get_fraction_from_str(&test, "0.0067");
+	test = fraction_reduction(test);
+	printf("%ld %ld\n", test->numerator, test->denominator);
+
 	if (exit_code == SUCCESS) {
 		output_res(res, 3);
 	} else {
@@ -105,7 +110,7 @@ int get_fraction_from_dbl(Fraction **fraction, char *number) {
 Fraction *fraction_reduction(Fraction *fraction) {
 	int div = 2;
 
-	while (div <= sqrt(fraction->numerator) && div <= fraction->numerator) {
+	while (div <= (int)ceil(sqrt(fraction->numerator)) && div <= fraction->numerator) {
 		while (fraction->numerator % div == 0 && fraction->denominator % div == 0) {
 			fraction->numerator /= div;
 			fraction->denominator /= div;
@@ -144,18 +149,18 @@ int representation_fractions(Fraction_res **res, int notation, int count, ...) {
 	if (valid_notation(notation)) {
 		*res = (Fraction_res*)malloc(sizeof(Fraction_res) * count);
 		char *number;
-		int res_func = 0;
+		int exit_code = 0;
 		va_list args;
 		va_start(args, count);
 
 		for (int i = 0; i < count; i++) {
 			number = va_arg(args, char*);
 			(*res)[i].fraction = number;
-			res_func = has_representation(notation, number);
-			if (res_func == 0 || res_func == 1) {
-				(*res)[i].status = res_func;
+			exit_code = has_representation(notation, number);
+			if (exit_code == 0 || exit_code == 1) {
+				(*res)[i].status = exit_code;
 			} else {
-				return res_func;
+				return exit_code;
 			}
 		}
 		

@@ -86,7 +86,7 @@ int get_fraction_from_dbl(Fraction **fraction, double number) {
 Fraction *fraction_reduction(Fraction *fraction) {
 	int div = 2;
 
-	while (div <= sqrt(fraction->numerator) && div <= fraction->numerator) {
+	while (div <= (int)ceil(sqrt(fraction->numerator)) && div <= fraction->numerator) {
 		while (fraction->numerator % div == 0 && fraction->denominator % div == 0) {
 			fraction->numerator /= div;
 			fraction->denominator /= div;
@@ -125,18 +125,18 @@ int representation_fractions(Fraction_res **res, int notation, int count, ...) {
 	if (valid_notation(notation)) {
 		*res = (Fraction_res*)malloc(sizeof(Fraction_res) * count);
 		double number;
-		int res_func = 0;
+		int exit_code = 0;
 		va_list args;
 		va_start(args, count);
 
 		for (int i = 0; i < count; i++) {
 			number = va_arg(args, double);
 			(*res)[i].fraction = number;
-			res_func = has_representation(notation, number);
-			if (res_func == 0 || res_func == 1) {
-				(*res)[i].status = res_func;
+			exit_code = has_representation(notation, number);
+			if (exit_code == 0 || exit_code == 1) {
+				(*res)[i].status = exit_code;
 			} else {
-				return res_func;
+				return exit_code;
 			}
 		}
 		
