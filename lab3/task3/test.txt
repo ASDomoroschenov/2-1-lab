@@ -1,0 +1,5 @@
+1 sasha domoroschenov 300000
+2 danila domoroschenov 12000
+3 kristina oganova 50000
+4 natasha domoroschenova 100000
+5 anna dobrynkina 80000
