@@ -1,33 +1,8 @@
-#include <stdio.h>
-#include <string.h>
-#include <ctype.h>
+#include "../headers/string.h"
 #include <stdlib.h>
-
-enum ERRORS {
-	NO_MEMORY = -1,
-	SUCCESS = -2,
-	INVALID_STUDENT = -3,
-	OPEN_FILE = -4,
-	INVALID_ARGS = -5
-};
-
-int join_symb(char, char**, int*);
-int get_token_str(char**, char**);
-int split_space(char*, char***, int*);
-
-int main(int argc, char const *argv[]) {
-	char *str = "123 123 123";
-	char **arr_token = NULL;
-	int length = 0;
-
-	if (split(str, &arr_token, &length) == SUCCESS) {
-		for (int i = 0; i < length; i++) {
-			printf("%s\n", arr_token[i]);
-		}
-	}
-
-	return 0;
-}
+#include <string.h>
+#include <stdio.h>
+#include <ctype.h>
 
 int join_symb(char symb, char **str, int *size) {
 	if (*size == 0) {
@@ -76,28 +51,48 @@ int get_token_str(char **ptr, char **token) {
 
 int split_space(char *str, char ***arr_token, int *length) {
 	int size = 0;
-	int index = 0;
 	char *ptr = str;
 	char *token = NULL;
-
+	
 	while (*ptr) {
 		if (get_token_str(&ptr, &token) != SUCCESS) {
 			return NO_MEMORY;
 		}
 
-		if (index == size) {
-			size = size ? size * 2 : 1;
-			*arr_token = (char**)realloc(*arr_token, sizeof(char*) * size);
+		if (token) {
+			if (*length == size) {
+				size = size ? size * 2 : 1;
+				*arr_token = (char**)realloc(*arr_token, sizeof(char*) * size);
 
-			if (!*arr_token) {
-				return NO_MEMORY;
+				if (!*arr_token) {
+					return NO_MEMORY;
+				}
 			}
+			(*arr_token)[*length] = (char*)malloc(sizeof(char) * (strlen(token) + 1));
+			strcpy((*arr_token)[*length], token);
+			free(token);
+			token = NULL;
+			(*length)++;
 		}
-
-		(*arr_token)[index++] = token;
 	}
 
-	*length = index;
+	return SUCCESS;
+}
+
+int get_str(char **str, FILE *input) {
+	char symb = fgetc(input);
+	int exit_code = 0;
+	int size = 0;
+
+	while (symb != '\n' && symb != EOF) {
+		exit_code = join_symb(symb, str, &size);
+		
+		if (exit_code != SUCCESS) {
+			return exit_code;
+		}
+		
+		symb = fgetc(input);
+	}
 
 	return SUCCESS;
 }
