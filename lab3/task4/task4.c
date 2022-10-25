@@ -2,12 +2,14 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
+#include <time.h>
 
 enum ERRORS {
 	NO_MEMORY = -1,
 	SUCCESS = -2,
 	INVALID_MESSAGE = -3,
-	OPEN_FILE = -4
+	OPEN_FILE = -4,
+	INVALID_ARGS = -5
 };
 
 typedef struct {
@@ -21,31 +23,50 @@ int get_token_str(char**, char**);
 int token_count(char*);
 int get_str(char**, FILE*);
 int check_id(char*);
-int check_length(char*);
+int check_length(char*, char*);
 int check_message(char*);
 int get_message(char*, message**);
 int try_get_valid_message(char**);
+int generate_file_name(char**);
 int write_in_file(FILE*, message*);
-int fill_file(char*, size_t*);
-int get_messages_from_csv(FILE*, message**, size_t);
+int fill_file(char*, char*, size_t*);
+int get_messages_from_csv(char*, message***, size_t);
+void output_messages(message**, size_t);
+void free_messages(message***, size_t);
+void print_error(int exit_code);
 
 int main(int argc, char *argv[]) {
+	srand(time(NULL));
+
 	if (argc == 2) {
 		message **messages = NULL;
 		size_t count_messages = 0;
+		int code_get_messages = 0;
+		int code_fill_file = 0;
+		char *name_file = NULL;
 
-		fill_file(argv[1], &count_messages);
+		if (generate_file_name(&name_file) == SUCCESS) {
+			code_fill_file = fill_file(name_file, argv[1], &count_messages);
 
-		messages = (message**)malloc(sizeof(message*) * count_messages);
-		for (int i = 0; i < count_messages; i++) {
-			messages[i] = (message*)malloc(sizeof(message));
+			if (code_fill_file == SUCCESS) {
+				code_get_messages = get_messages_from_csv(name_file, &messages, count_messages);
+			
+				if (code_get_messages == SUCCESS) {
+					output_messages(messages, count_messages);
+				} else {
+					print_error(code_get_messages);
+				}
+				
+				free_messages(&messages, count_messages);
+				free(name_file);
+			} else {
+				print_error(code_fill_file);
+			}
+		} else {
+			print_error(NO_MEMORY);
 		}
-
-		FILE *csv_file = fopen("test.csv", "r");
-		get_messages_from_csv(csv_file, messages, count_messages);
-		fclose(csv_file);
 	} else {
-		fprintf(stderr, "%s\n", "INVALID_ARGS: Invalid count of arguments");
+		print_error(INVALID_ARGS);
 	}
 
 	return 0;
@@ -141,7 +162,7 @@ int check_id(char *id) {
 	return atoi(id) > 0;
 }
 
-int check_length(char *length) {
+int check_length(char *length, char *text_message) {
 	char *ptr = length - 1;
 
 	while (*++ptr) {
@@ -150,7 +171,7 @@ int check_length(char *length) {
 		}
 	}
 
-	return atoi(length) > 0;
+	return (atoi(length) > 0) && strlen(text_message) == atoi(length);
 }
 
 int check_message(char *str) {
@@ -166,7 +187,7 @@ int check_message(char *str) {
 		if (get_token_str(&ptr, &id) == SUCCESS &&
 			get_token_str(&ptr, &text_msg) == SUCCESS &&
 			get_token_str(&ptr, &length) == SUCCESS) {
-			if (check_id(id) && check_length(length)) {
+			if (check_id(id) && check_length(length, text_msg)) {
 				free(id);
 				free(text_msg);
 				free(length);
@@ -215,18 +236,53 @@ int try_get_valid_message(char **str) {
 		if (get_str(str, stdin) == NO_MEMORY) {
 			return NO_MEMORY;
 		}
-
+		
 		count++;
 	} while (count < 3 && check_message(*str) == INVALID_MESSAGE);
 
+	if (count < 3) {
+		printf("SUCCESS\n");
+	}
+
 	return count;
+}
+
+int generate_file_name(char **name) {
+	size_t length = rand() % 10 + 1;
+	length += 5;
+
+	*name = (char*)malloc(sizeof(char) * length);
+
+	if (!*name) {
+		return NO_MEMORY;
+	}
+
+	for (int i = 0; i < length - 4; i++) {
+		int is_letter = rand() % 2;
+
+		if (is_letter == 1) {
+			int upper_lower = rand() % 2;
+			
+			if (upper_lower == 1) {
+				(*name)[i] = (char)(rand() % 26 + 'A');
+			} else {
+				(*name)[i] = (char)(rand() % 26 + 'a');
+			}
+		} else {
+			(*name)[i] = (char)(rand() % 10 + '0');
+		}
+	}
+
+	strcat(*name, ".csv");
+
+	return SUCCESS;
 }
 
 int write_in_file(FILE *csv_file, message *item) {
 	fprintf(csv_file, "%d,%s,%d\n", item->id, item->text_message, item->length);
 }
 
-int fill_file(char *stop_word, size_t *count_messages) {
+int fill_file(char *name_file, char *stop_word, size_t *count_messages) {
 	FILE *csv_file = NULL;
 	char *str = NULL;
 	int code_get_str = 0;
@@ -234,7 +290,7 @@ int fill_file(char *stop_word, size_t *count_messages) {
 	int code_get_valid_message = 0;
 	int count = 0;
 
-	if ((csv_file = fopen("test.csv", "w")) != NULL) {
+	if ((csv_file = fopen(name_file, "w")) != NULL) {
 		do {
 			if (str) {
 				free(str);
@@ -244,7 +300,6 @@ int fill_file(char *stop_word, size_t *count_messages) {
 
 			if (code_get_str != SUCCESS) {
 				fclose(csv_file);
-
 				return code_get_str;
 			} else {
 				if (strcmp(str, stop_word) != 0) {
@@ -253,13 +308,11 @@ int fill_file(char *stop_word, size_t *count_messages) {
 
 						if (code_get_valid_message == NO_MEMORY) {
 							fclose(csv_file);
-
 							return NO_MEMORY;
 						} else {
 							if (code_get_valid_message == 3) {
 								free(str);
 								fclose(csv_file);
-
 								return INVALID_MESSAGE;
 							}
 						}
@@ -270,7 +323,6 @@ int fill_file(char *stop_word, size_t *count_messages) {
 					if (!item) {
 						free(str);
 						fclose(csv_file);
-
 						return NO_MEMORY;
 					}
 
@@ -278,7 +330,6 @@ int fill_file(char *stop_word, size_t *count_messages) {
 
 					if (code_get_message != SUCCESS) {
 						fclose(csv_file);
-
 						return code_get_message;
 					} else {
 						write_in_file(csv_file, item);
@@ -299,20 +350,85 @@ int fill_file(char *stop_word, size_t *count_messages) {
 	return OPEN_FILE;
 }
 
-int get_messages_from_csv(FILE *csv_file, message **messages, size_t count_messages) {
+int get_messages_from_csv(char *name_file, message ***messages, size_t count_messages) {
+	FILE *csv_file = NULL;
+
+	*messages = (message**)malloc(sizeof(message*) * count_messages);
+	
+	if (!*messages) {
+		return NO_MEMORY;
+	}
+
 	for (int i = 0; i < count_messages; i++) {
-		char *str = NULL;
-		int code_get_str = get_str(&str, csv_file);
-		
-		if (code_get_str != SUCCESS) {
-			return code_get_str;
+		(*messages)[i] = (message*)malloc(sizeof(message));
+
+		if (!(*messages)[i]) {
+			return NO_MEMORY;
 		}
+	}
 
-		char *item = strtok(str, ",");
+	if ((csv_file = fopen(name_file, "r")) != NULL) {
+		for (int i = 0; i < count_messages; i++) {
+			char *str = NULL;
+			int code_get_str = get_str(&str, csv_file);
+			
+			if (code_get_str != SUCCESS) {
+				return code_get_str;
+			}
 
-		while (item != NULL) {
-			printf("%s\n", item);
+			char *item = strtok(str, ",");
+			(*messages)[i]->id = atoi(item);
 			item = strtok(NULL, ",");
+			(*messages)[i]->text_message = (char*)malloc(sizeof(char) * (strlen(item) + 1));
+			strcpy((*messages)[i]->text_message, item);
+			item = strtok(NULL, ",");
+			(*messages)[i]->length = atoi(item);
+			free(str);
 		}
+
+		fclose(csv_file);
+	} else {
+		return OPEN_FILE;
+	}
+
+	return SUCCESS;
+}
+
+void output_messages(message **messages, size_t count_messages) {
+	for (int i = 0; i < count_messages; i++) {
+		printf("%d %s %d\n", messages[i]->id, messages[i]->text_message, messages[i]->length);
+	}
+}
+
+void free_messages(message ***messages, size_t count_messages) {
+	for (int i = 0; i < count_messages; i++) {
+		if ((*messages)[i]->text_message) {
+			free((*messages)[i]->text_message);
+		}
+		if ((*messages)[i]) {
+			free((*messages)[i]);
+		}
+	}
+
+	if (*messages) {
+		free(*messages);
+	}
+}
+
+void print_error(int exit_code) {
+	if (exit_code == NO_MEMORY) {
+		fprintf(stderr, "%s\n", "NO_MEMORY: The system is out of memory");
+	}
+
+	if (exit_code == INVALID_MESSAGE) {
+		fprintf(stderr, "%s\n", "INVALID_MESSAGE: You put an invalid message");
+	}
+
+	if (exit_code == OPEN_FILE) {
+		fprintf(stderr, "%s\n", "ERROR_OPEN_FILE: Can't open file");
+	}
+
+	if (exit_code == INVALID_ARGS) {
+		fprintf(stderr, "%s\n", "INVALID_ARGS: Invalid count of arguments");
 	}
 }
