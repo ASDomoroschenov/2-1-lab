@@ -23,10 +23,9 @@ int get_token_str(char**, char**);
 int token_count(char*);
 int get_str(char**, FILE*);
 int check_id(char*);
-int check_length(char*, char*);
 int check_message(char*);
 int get_message(char*, message**);
-int try_get_valid_message(char**);
+int try_get_valid_message(char**, char*);
 int generate_file_name(char**);
 int write_in_file(FILE*, message*);
 int fill_file(char*, char*, size_t*);
@@ -107,7 +106,7 @@ int get_token_str(char **ptr, char **token) {
 		(*ptr)++;
 	}
 
-	while (!isspace(**ptr) && **ptr) {
+	while (!isspace(**ptr) && **ptr && **ptr != EOF) {
 		if (join_symb(**ptr, token, &size) == NO_MEMORY) {
 			return NO_MEMORY;
 		}
@@ -162,40 +161,20 @@ int check_id(char *id) {
 	return atoi(id) > 0;
 }
 
-int check_length(char *length, char *text_message) {
-	char *ptr = length - 1;
-
-	while (*++ptr) {
-		if (!isdigit(*ptr)) {
-			return 0;
-		}
-	}
-
-	return (atoi(length) > 0) && strlen(text_message) == atoi(length);
-}
-
 int check_message(char *str) {
 	char *ptr = str;
 
-	if (token_count(str) != 3) {
+	if (token_count(str) < 2) {
 		return INVALID_MESSAGE;
 	} else {
 		char *id = NULL;
-		char *text_msg = NULL;
-		char *length = NULL;
 
-		if (get_token_str(&ptr, &id) == SUCCESS &&
-			get_token_str(&ptr, &text_msg) == SUCCESS &&
-			get_token_str(&ptr, &length) == SUCCESS) {
-			if (check_id(id) && check_length(length, text_msg)) {
+		if (get_token_str(&ptr, &id) == SUCCESS) {
+			if (check_id(id)) {
 				free(id);
-				free(text_msg);
-				free(length);
 				return SUCCESS;
 			} else {
 				free(id);
-				free(text_msg);
-				free(length);
 				return INVALID_MESSAGE;
 			}
 		} else {
@@ -208,16 +187,12 @@ int get_message(char *str, message **msg) {
 	char *ptr = str;
 	char *id = NULL;
 	char *text_msg = NULL;
-	char *length = NULL;
 
-	if (get_token_str(&ptr, &id) == SUCCESS &&
-		get_token_str(&ptr, &text_msg) == SUCCESS &&
-		get_token_str(&ptr, &length) == SUCCESS) {
+	if (get_token_str(&ptr, &id) == SUCCESS) {
 		(*msg)->id = atoi(id);
-		(*msg)->text_message = text_msg;
-		(*msg)->length = atoi(length);
+		(*msg)->text_message = ++ptr;
+		(*msg)->length = strlen((*msg)->text_message);
 		free(id);
-		free(length);
 	} else {
 		return NO_MEMORY;
 	}
@@ -225,7 +200,7 @@ int get_message(char *str, message **msg) {
 	return SUCCESS;
 }
 
-int try_get_valid_message(char **str) {
+int try_get_valid_message(char **str, char *stop_word) {
 	int count = 0;
 
 	fprintf(stderr, "%s\n", "INVALID_MESSAGE: Please enter a valid message");
@@ -238,7 +213,7 @@ int try_get_valid_message(char **str) {
 		}
 		
 		count++;
-	} while (count < 3 && check_message(*str) == INVALID_MESSAGE);
+	} while (count < 3 && check_message(*str) == INVALID_MESSAGE && strcmp(*str, stop_word) != 0);
 
 	if (count < 3) {
 		printf("SUCCESS\n");
@@ -279,7 +254,25 @@ int generate_file_name(char **name) {
 }
 
 int write_in_file(FILE *csv_file, message *item) {
-	fprintf(csv_file, "%d,%s,%d\n", item->id, item->text_message, item->length);
+	char *ptr = item->text_message;
+	char *token = NULL;
+	int count = 0;
+	int count_tokens = token_count(item->text_message);
+
+	fprintf(csv_file, "%d,", item->id);
+
+	for (int i = 0; i < count_tokens; i++) {
+		if (get_token_str(&ptr, &token) == SUCCESS) {
+			if (i == count_tokens - 1) {
+				fprintf(csv_file, "%s\n", token);
+			} else {
+				fprintf(csv_file, "%s,", token);
+			}
+			free(token);
+		} else {
+			return NO_MEMORY;
+		}
+	}
 }
 
 int fill_file(char *name_file, char *stop_word, size_t *count_messages) {
@@ -304,7 +297,7 @@ int fill_file(char *name_file, char *stop_word, size_t *count_messages) {
 			} else {
 				if (strcmp(str, stop_word) != 0) {
 					if (check_message(str) == INVALID_MESSAGE) {
-						code_get_valid_message = try_get_valid_message(&str);
+						code_get_valid_message = try_get_valid_message(&str, stop_word);
 
 						if (code_get_valid_message == NO_MEMORY) {
 							fclose(csv_file);
@@ -314,6 +307,10 @@ int fill_file(char *name_file, char *stop_word, size_t *count_messages) {
 								free(str);
 								fclose(csv_file);
 								return INVALID_MESSAGE;
+							} else {
+								if (strcmp(str, stop_word) == 0) {
+									return SUCCESS;
+								}
 							}
 						}
 					}
@@ -333,7 +330,6 @@ int fill_file(char *name_file, char *stop_word, size_t *count_messages) {
 						return code_get_message;
 					} else {
 						write_in_file(csv_file, item);
-						free(item->text_message);
 						free(item);
 						(*count_messages)++;
 					}
@@ -376,13 +372,30 @@ int get_messages_from_csv(char *name_file, message ***messages, size_t count_mes
 				return code_get_str;
 			}
 
-			char *item = strtok(str, ",");
-			(*messages)[i]->id = atoi(item);
-			item = strtok(NULL, ",");
-			(*messages)[i]->text_message = (char*)malloc(sizeof(char) * (strlen(item) + 1));
-			strcpy((*messages)[i]->text_message, item);
-			item = strtok(NULL, ",");
-			(*messages)[i]->length = atoi(item);
+			char *id;
+			char *ptr = str;
+			size_t size = 0;
+
+			while (*ptr != ',') {
+				join_symb(*ptr, &id, &size);
+				ptr++;
+			}
+
+			(*messages)[i]->id = atoi(id);
+			free(id);
+			ptr++;
+			(*messages)[i]->text_message = (char*)malloc(sizeof(char) * (strlen(ptr) + 1));
+			(*messages)[i]->length = strlen(ptr);
+
+			for (int j = 0; j < (*messages)[i]->length; j++) {
+				if (*ptr == ',') {
+					(*messages)[i]->text_message[j] = ' ';
+				} else {
+					(*messages)[i]->text_message[j] = *ptr;
+				}
+				ptr++;
+			}
+			
 			free(str);
 		}
 
