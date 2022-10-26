@@ -8,13 +8,13 @@ typedef struct Node {
 	size_t length;
 	size_t degree;
 	employee *key;
-} Node_tree;
+} node_tree;
 
 typedef struct {
-	Node_tree *root;
+	node_tree *root;
 } binom_tree;
 
-binom_tree *init_root_tree(employee*);
-binom_tree *merge(binom_tree*, binom_tree*, int (*cmp)(employee*, employee*));
+int init_root_tree(binom_tree**, employee*);
+int merge(binom_tree**, binom_tree*, binom_tree*, int (*cmp)(employee*, employee*));
 
 #endif // BINOM_TREE

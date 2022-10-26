@@ -11,13 +11,13 @@ enum FLAGS {
 };
 
 typedef struct {
-	size_t id;
+	int id;
 	char *name;
 	char *surname;
 	double wage;
 } employee;
 
-int join_symb(char, char**, size_t*);
+int join_symb(char, char**, int*);
 int get_line(FILE*, char**);
 int word_count(char*);
 int get_token_str(char **str, char **token);
@@ -26,9 +26,10 @@ int check_name(char*);
 int check_surname(char*);
 int check_wage(char*);
 int get_employee_info(char*, employee**);
-int get_workers(char*, employee***, size_t*);
+int get_workers(char*, employee***, int*);
 void free_worker(employee**);
-void free_arr_workers(employee***, size_t);
-void output_workers(employee**, size_t);
+void free_arr_workers(employee***, int);
+void output_workers(employee**, int);
+void print_error(int);
 
 #endif // EMPLOYEE_H

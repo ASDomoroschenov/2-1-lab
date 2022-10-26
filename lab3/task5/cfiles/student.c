@@ -1,9 +1,11 @@
-#include "../headers/student.h"
-#include "../headers/string.h"
 #include <stdlib.h>
 #include <ctype.h>
 #include <stdio.h>
 #include <string.h>
+#include "../headers/student.h"
+#include "../headers/string.h"
+
+#define eps 0.0000000001
 
 int check_number(char *number) {
 	char *ptr = number - 1;
@@ -141,7 +143,7 @@ int get_arr_student(char *name_file, student ***students, int *count_students) {
 			if (exit_code_check != 1) {
 				free(str);
 				fclose(file_students);
-				return exit_code_check;
+				return INVALID_STUDENT;
 			}
 
 			if (index == size) {
@@ -265,23 +267,230 @@ int cmp_group(const void *item_1, const void *item_2) {
 	return strcmp((*((student**)(item_1)))->group, (*((student**)(item_2)))->group);
 }
 
+double get_avarage_grade(student *item) {
+	int sum = 0;
+
+	for (int i = 0; i < 5; i++) {
+		sum += item->grades[i];
+	}
+
+	return sum / 5.0;
+}
+
+double get_avarage_grades_student(student **arr_students, int count_students) {
+	int sum = 0;
+
+	for (int i = 0; i < count_students; i++) {
+		for (int j = 0; j < 5; j++) {
+			sum += arr_students[i]->grades[j];
+		}
+	}
+
+	return sum / (count_students * 5.0);
+}
+
+int push_back(list **list_students, student *item) {
+	if (!*list_students) {
+		*list_students = (list*)malloc(sizeof(list));
+		if (!*list_students) {
+			return NO_MEMORY;
+		}
+		(*list_students)->root = (list_node*)malloc(sizeof(list_node));
+		if (!(*list_students)->root) {
+			return NO_MEMORY;
+		}
+		(*list_students)->root->item = item;
+		(*list_students)->root->next = NULL;
+	} else {
+		list_node *node = (*list_students)->root;
+
+		while (node->next != NULL) {
+			node = node->next;
+		}
+
+		node->next = (list_node*)malloc(sizeof(list_node));
+		if (!(node->next)) {
+			return NO_MEMORY;
+		}
+		node->next->item = item;
+		node->next->next = NULL;
+	}
+}
+
+int get_name_file(char **res, char *name_file, int course) {
+	*res = (char*)malloc(sizeof(char) * (strlen("res_files/") + strlen(name_file) + 3));
+
+	if (!*res) {
+		return NO_MEMORY;
+	}
+
+	char *ptr_res = *res;
+	char *ptr = name_file;
+	char extension[4] = ".txt";
+	char dir[10] = "res_files/";
+
+	for (int i = 0; i < 10; i++) {
+		*ptr_res++ = dir[i];
+	}
+
+	while (*ptr != '.') {
+		*ptr_res++ = *ptr++;
+	}
+
+	while (*ptr != '.') {
+		*ptr_res++ = *ptr++;
+	}
+
+	*ptr_res++ = '_';
+	*ptr_res++ = (char)(course + '0');
+	
+	for (int i = 0; i < 4; i++) {
+		*ptr_res++ = extension[i];
+	}
+
+	*ptr_res = 0;
+
+	return SUCCESS;
+}
+
+int write_in_files(char *name, list **list_students, double avarage) {
+	for (int i = 0; i < 4; i++) {
+		char *name_file = NULL;
+		if (get_name_file(&name_file, name, i + 1) != SUCCESS) {
+			return NO_MEMORY;
+		}
+
+		FILE *file = NULL;
+
+		if ((file = fopen(name_file, "w")) != NULL) {
+			if (list_students[i]) {
+				list_node *node = list_students[i]->root;
+
+				while (node != NULL) {
+					if (get_avarage_grade(node->item) - avarage > eps) {
+						output_student(node->item, file);
+					}
+					node = node->next;
+				}
+			}
+
+			fclose(file);
+		} else {
+			free(name_file);
+			return OPEN_FILE;
+		}
+
+		free(name_file);
+	}
+
+	return SUCCESS;
+}
+
+list **grouping_by_course(student **arr_students, int count_students) {
+	list **list_students = (list**)malloc(sizeof(list*) * 4);
+	int exit_code = 0;
+
+	for (int i = 0; i < 4; i++) {
+		list_students[i] = NULL;
+	}
+
+	for (int i = 0; i < count_students; i++) {
+		exit_code = push_back(&list_students[arr_students[i]->course - 1], arr_students[i]);
+		
+		if (exit_code == NO_MEMORY) {
+			free_list_students(&list_students);
+			return NULL;
+		}
+	}
+
+	return list_students;
+}
+
+void output_student(student *item, FILE *out) {
+	fprintf(out, "%-15s \t %-10s \t %d \t %-10s \t %lf\n", item->surname, item->name, item->course, item->group, get_avarage_grade(item));
+}
+
 void output_students(student **arr_students, int count_students) {
 	for (int i = 0; i < count_students; i++) {
-		printf("%d %s %s %d %s ", arr_students[i]->id, arr_students[i]->name, arr_students[i]->surname, arr_students[i]->course, arr_students[i]->group);
-		for (int j = 0; j < 5; j++) {
-			printf("%d ", arr_students[i]->grades[j]);
+		output_student(arr_students[i], stdout);
+	}
+}
+
+void output_list(list *list_students) {
+	if (list_students) {
+		list_node *node = list_students->root;
+
+		while (node != NULL) {
+			output_student(node->item, stdout);
+			node = node->next;
 		}
+
 		printf("\n");
 	}
 }
 
-void free_arr_students(student ***arr_students, int count_students) {
-	for (int i = 0; i < count_students; i++) {
-		free((*arr_students)[i]->name);
-		free((*arr_students)[i]->surname);
-		free((*arr_students)[i]->group);
-		free((*arr_students)[i]);
+void output_list_students(list **list_students) {
+	for (int i = 0; i < 4; i++) {
+		printf("%d COURSE:", i + 1);
+		if (list_students[i]) {
+			printf("\n");
+			output_list(list_students[i]);
+		} else {
+			printf("There are no students\n\n");
+		}
 	}
+}
 
-	free(*arr_students);
+void free_list(list **list_students) {
+	if (*list_students) {
+		list_node *node = (*list_students)->root;
+
+		while (node != NULL) {
+			list_node *temp = node;
+			node = node->next;
+			free(temp);
+		}
+
+		free(*list_students);
+	}
+}
+
+void free_list_students(list ***list_students) {
+	if (*list_students) {
+		for (int i = 0; i < 4; i++) {
+			if ((*list_students)[i]) {
+				free_list(&(*list_students)[i]);
+			}
+		}
+
+		free(*list_students);
+	}
+}
+
+void free_arr_students(student ***arr_students, int count_students) {
+	if (*arr_students) {
+		for (int i = 0; i < count_students; i++) {
+			free((*arr_students)[i]->name);
+			free((*arr_students)[i]->surname);
+			free((*arr_students)[i]->group);
+			free((*arr_students)[i]);
+		}
+
+		free(*arr_students);
+	}
+}
+
+void print_error(int exit_code) {
+	if (exit_code == NO_MEMORY) {
+		fprintf(stderr, "%s\n", "NO_MEMORY: The system is out of memory");
+	}
+	if (exit_code == INVALID_STUDENT) {
+		fprintf(stderr, "%s\n", "INVALID_STUDENT: You put an invalid student");
+	}
+	if (exit_code == OPEN_FILE) {
+		fprintf(stderr, "%s\n", "OPEN_FILE: Can't open entered file");
+	}
+	if (exit_code == INVALID_ARGS) {
+		fprintf(stderr, "%s\n", "INVALID_STUDENT: You put an invalid arguments");
+	}
 }

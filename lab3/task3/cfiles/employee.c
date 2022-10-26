@@ -2,9 +2,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include "employee.h"
+#include "../headers/employee.h"
 
-int join_symb(char symb, char **str, size_t *size) {
+int join_symb(char symb, char **str, int *size) {
 	if (*size == 0) {
 		*size = 2;
 		*str = (char*)malloc(sizeof(char) * *size);
@@ -34,7 +34,7 @@ int join_symb(char symb, char **str, size_t *size) {
 
 int get_line(FILE *file_info, char **str) {
 	char symb = fgetc(file_info);
-	size_t size_str = 0;
+	int size_str = 0;
 
 	while (symb != '\n' && symb != EOF) {
 		if (join_symb(symb, str, &size_str) == NO_MEMORY) {
@@ -49,7 +49,7 @@ int get_line(FILE *file_info, char **str) {
 int word_count(char *str) {
 	char _c = ' ';
 	char *ptr = str - 1;
-	size_t count = 0;
+	int count = 0;
 
 	while (*++ptr) {
 		if (isspace(_c) && !isspace(*ptr)) {
@@ -62,7 +62,7 @@ int word_count(char *str) {
 }
 
 int get_token_str(char **ptr, char **token) {
-	size_t size = 0;
+	int size = 0;
 
 	while (isspace(**ptr)) {
 		(*ptr)++;
@@ -126,6 +126,10 @@ int check_wage(char *wage) {
 int get_employee_info(char *str, employee **item) {
 	char *ptr = str;
 	*item = (employee*)malloc(sizeof(employee));
+
+	if (!*item) {
+		return NO_MEMORY;
+	}
 
 	if (word_count(str) != 4) {
 		free(*item);
@@ -191,14 +195,14 @@ int get_employee_info(char *str, employee **item) {
 	return SUCCESS;
 }
 
-int get_workers(char *file_name, employee ***workers, size_t *size) {
+int get_workers(char *file_name, employee ***workers, int *size) {
 	FILE *file = NULL;
 
 	if ((file = fopen(file_name, "r")) != NULL) {
 		char *str = NULL;
 		int exit_code = 0;
 		int index = 0;
-		size_t length = 1;
+		int length = 1;
 		*workers = (employee**)malloc(sizeof(employee*));
 
 		while (!feof(file)) {
@@ -222,6 +226,7 @@ int get_workers(char *file_name, employee ***workers, size_t *size) {
 				}
 
 				free(str);
+				str = NULL;
 			}
 		}
 
@@ -246,9 +251,9 @@ void free_worker(employee **item) {
 	}
 }
 
-void free_arr_workers(employee ***workers, size_t size) {
+void free_arr_workers(employee ***workers, int size) {
 	if (*workers) {
-		for (size_t i = 0; i < size; i++) {
+		for (int i = 0; i < size; i++) {
 			if ((*workers)[i]) {
 				free_worker(&(*workers)[i]);
 			}
@@ -258,9 +263,18 @@ void free_arr_workers(employee ***workers, size_t size) {
 	}
 }
 
-void output_workers(employee **workers, size_t size) {
+void output_workers(employee **workers, int size) {
 	for (int i = 0; i < size; i++) {
 		printf("%d %s %s %lf\n", workers[i]->id, workers[i]->name, workers[i]->surname, workers[i]->wage);
 	}
 	printf("\n");
+}
+
+void print_error(int exit_code) {
+	if (exit_code == FILE_DIDNT_OPEN) {
+		fprintf(stderr, "%s\n", "FILE_DIDNT_OPEN: Can't open file");
+	}
+	if (exit_code == NO_MEMORY) {
+		fprintf(stderr, "%s\n", "NO_MEMORY: The system is out of memory");
+	}
 }

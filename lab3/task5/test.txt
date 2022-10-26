@@ -1,5 +1,5 @@
-10 Sasha Domoroschenov 2 M8O-213B 4 5 4 5 5
+10 Sasha Domoroschenov 4 M8O-213B 4 5 4 5 5
 5 Kristina Oganova 2 M8O-213B 3 4 3 5 5
 4 Danila Domoroschenov 2 M4O-212B 4 4 3 5 5
 9 Ilya Irbitskiy 2 M8O-213B 5 5 5 5 5
-3 Timofey Klokov 2 M7O0-213B 2 2 2 2 2
+3 Timofey Klokov 2 M7O0-213B 2 2 2 2 5

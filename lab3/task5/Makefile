@@ -10,4 +10,5 @@ $(EXECUTABLE): $(OBJECTS)
 	$(CC) $(LDFLAGS) $(OBJECTS) -o $(EXECUTABLE)
 
 clean:
-	rm -f *.o $(EXECUTABLE)
+	rm -f ./cfiles/*.o $(EXECUTABLE)
+	rm -f res_files/*
