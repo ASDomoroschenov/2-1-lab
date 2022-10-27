@@ -11,6 +11,7 @@ void print_error(int);
 
 int main(int argc, char *argv[]) {
 	srand(time(NULL));
+	char *strip_str = NULL;
 
 	if (argc == 2) {
 		message **messages = NULL;
@@ -20,14 +21,10 @@ int main(int argc, char *argv[]) {
 		char *name_file = NULL;
 
 		if (generate_file_name(&name_file) == SUCCESS) {
-			char fullname[512];
-			strcat(fullname, "csv_file/");
-			strcat(fullname, name_file);
-			code_fill_file = fill_file(fullname, argv[1], &count_messages);
+			code_fill_file = fill_file(name_file, argv[1], &count_messages);
 
 			if (code_fill_file == SUCCESS) {
-				code_get_messages = get_messages_from_csv(fullname, &messages, count_messages);
-			
+				code_get_messages = get_messages_from_csv(name_file, &messages, count_messages);
 				if (code_get_messages == SUCCESS) {
 					output_messages(messages, count_messages);
 				} else {

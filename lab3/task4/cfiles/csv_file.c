@@ -61,6 +61,7 @@ int write_in_file(FILE *csv_file, message *item) {
 int fill_file(char *name_file, char *stop_word, size_t *count_messages) {
 	FILE *csv_file = NULL;
 	char *str = NULL;
+	char *strip_str = NULL;
 	int code_get_str = 0;
 	int code_get_message = 0;
 	int code_get_valid_message = 0;
@@ -68,6 +69,10 @@ int fill_file(char *name_file, char *stop_word, size_t *count_messages) {
 
 	if ((csv_file = fopen(name_file, "w")) != NULL) {
 		do {
+			if (strip_str) {
+				free(strip_str);
+			}
+
 			if (str) {
 				free(str);
 			}
@@ -78,10 +83,16 @@ int fill_file(char *name_file, char *stop_word, size_t *count_messages) {
 				fclose(csv_file);
 				return code_get_str;
 			} else {
-				if (strcmp(str, stop_word) != 0) {
+				if (strip(str, &strip_str) == NO_MEMORY) {
+					return NO_MEMORY;
+				}
+				if (strcmp(strip_str, stop_word) != 0) {
 					if (check_message(str) == INVALID_MESSAGE) {
 						code_get_valid_message = try_get_valid_message(&str, stop_word);
-
+						free(strip_str);
+						if (strip(str, &strip_str) == NO_MEMORY) {
+							return NO_MEMORY;
+						}
 						if (code_get_valid_message == NO_MEMORY) {
 							fclose(csv_file);
 							return NO_MEMORY;
@@ -91,7 +102,7 @@ int fill_file(char *name_file, char *stop_word, size_t *count_messages) {
 								fclose(csv_file);
 								return INVALID_MESSAGE;
 							} else {
-								if (strcmp(str, stop_word) == 0) {
+								if (strcmp(strip_str, stop_word) == 0) {
 									return SUCCESS;
 								}
 							}
@@ -118,10 +129,11 @@ int fill_file(char *name_file, char *stop_word, size_t *count_messages) {
 					}
 				}
 			}
-		} while (strcmp(str, stop_word) != 0);
+		} while (strcmp(strip_str, stop_word) != 0);
 
 		fclose(csv_file);
 		free(str);
+		free(strip_str);
 
 		return SUCCESS;
 	}

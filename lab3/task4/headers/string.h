@@ -15,5 +15,6 @@ int join_symb(char, char**, size_t*);
 int get_token_str(char**, char**);
 int token_count(char*);
 int get_str(char**, FILE*);
+int strip(char*, char**);
 
 #endif // STRING_H

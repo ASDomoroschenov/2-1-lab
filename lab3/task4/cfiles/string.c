@@ -92,3 +92,26 @@ int check_id(char *id) {
 
 	return atoi(id) > 0;
 }
+
+int strip(char *str, char **res_str) {
+	*res_str = (char*)malloc(sizeof(char) * strlen(str));
+	
+	if (!*res_str) {
+		return NO_MEMORY;
+	}
+
+	char *ptr_left = str;
+	char *ptr_right = str + strlen(str) - 1;
+
+	while (*ptr_left == ' ') {
+		ptr_left++;
+	}
+
+	while (*ptr_right == ' ') {
+		ptr_right--;
+	}
+	
+	strncpy(*res_str, ptr_left, ptr_right - ptr_left + 1);
+
+	return SUCCESS;
+}
