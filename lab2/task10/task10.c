@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <math.h>
 #include <stdarg.h>
-#include <ctype.h>
 
 #define eps 0.00000000001
 
@@ -12,7 +11,7 @@ typedef struct {
 } Fraction;
 
 typedef struct {
-	char *fraction;
+	double fraction;
 	int status;
 } Fraction_res;
 
@@ -23,23 +22,18 @@ enum ERRORS {
 	SUCCESS = -4
 };
 
-int valid_double(char*);
+int valid_double(double);
 int valid_notation(int);
-int get_fraction_from_str(Fraction**, char*);
+int get_fraction_from_dbl(Fraction**, double);
 Fraction *fraction_reduction(Fraction*);
-int has_representation(int, char*);
+int has_representation(int, double);
 int representation_fractions(Fraction_res **, int, int, ...);
 void output_res(Fraction_res*, int);
 
 int main() {
 	Fraction_res *res = NULL;
-	int exit_code = representation_fractions(&res, 5, 3, "0.1233333334", "0.125", "0.124");
-		
-	Fraction *test;
-	get_fraction_from_str(&test, "0.0067");
-	test = fraction_reduction(test);
-	printf("%ld %ld\n", test->numerator, test->denominator);
-
+	int exit_code = representation_fractions(&res, 5, 3, (double)0.123333333334, (double)0.125, (double)0.124);
+	
 	if (exit_code == SUCCESS) {
 		output_res(res, 3);
 	} else {
@@ -59,46 +53,28 @@ int main() {
 	return 0;
 }
 
-int valid_double(char *number) {
-	char *ptr = number;
-	
-	if (isdigit(*ptr) && *ptr == '0') {
-		if (*++ptr == '.') {
-			while (*++ptr) {
-				if (!isdigit(*ptr)) {
-					return 0;
-				}
-			}
-
-			return 1;
-		}
-	}
-
-	return 0;
+int valid_double(double number) {
+	return number > eps && number < 1.0;
 }
 
 int valid_notation(int notation) {
 	return notation >= 2 && notation <= 36;
 }
 
-int get_fraction_from_dbl(Fraction **fraction, char *number) {
+int get_fraction_from_dbl(Fraction **fraction, double number) {
 	if (valid_double(number)) {
-		unsigned long long numerator = 0;
 		unsigned long long denominator = 1;
-		char *ptr = number + 1;
-
 		*fraction = (Fraction*)malloc(sizeof(Fraction));
 
 		if (*fraction) {
-			while (*++ptr) {
-				numerator = numerator * 10 + (*ptr - '0');
+			while (number * denominator - floor(number * denominator) > eps) {
 				denominator *= 10;
 			}
- 		} else {
+		} else {
 			return NO_MEMORY;
 		}
 
-		(*fraction)->numerator = numerator;
+		(*fraction)->numerator = number * denominator;
 		(*fraction)->denominator = denominator;
 
 		return SUCCESS;
@@ -121,7 +97,7 @@ Fraction *fraction_reduction(Fraction *fraction) {
 	return fraction;
 }
 
-int has_representation(int notation, char *number) {
+int has_representation(int notation, double number) {
 	Fraction *fraction = NULL;
 	int exit_code = get_fraction_from_dbl(&fraction, number);
 	
@@ -148,13 +124,13 @@ int has_representation(int notation, char *number) {
 int representation_fractions(Fraction_res **res, int notation, int count, ...) {
 	if (valid_notation(notation)) {
 		*res = (Fraction_res*)malloc(sizeof(Fraction_res) * count);
-		char *number;
+		double number;
 		int exit_code = 0;
 		va_list args;
 		va_start(args, count);
 
 		for (int i = 0; i < count; i++) {
-			number = va_arg(args, char*);
+			number = va_arg(args, double);
 			(*res)[i].fraction = number;
 			exit_code = has_representation(notation, number);
 			if (exit_code == 0 || exit_code == 1) {
@@ -174,6 +150,6 @@ void output_res(Fraction_res *res, int count) {
 	char *res_status[] = {"NO", "YES"};
 	
 	for (int i = 0; i < count; i++) {
-		printf("%s - %s\n", res[i].fraction, res_status[res[i].status]);
+		printf("%.15lf - %s\n", res[i].fraction, res_status[res[i].status]);
 	}
 }

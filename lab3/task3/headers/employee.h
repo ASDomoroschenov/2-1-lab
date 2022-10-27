@@ -7,7 +7,8 @@ enum FLAGS {
 	SUCCESS = -1,
 	NO_MEMORY = -2,
 	INVALID_STR = -3,
-	FILE_DIDNT_OPEN = -4
+	FILE_DIDNT_OPEN = -4,
+	INVALID_ARGS = -5
 };
 
 typedef struct {

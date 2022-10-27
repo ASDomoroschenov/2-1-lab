@@ -277,4 +277,7 @@ void print_error(int exit_code) {
 	if (exit_code == NO_MEMORY) {
 		fprintf(stderr, "%s\n", "NO_MEMORY: The system is out of memory");
 	}
+	if (exit_code == INVALID_ARGS) {
+		fprintf(stderr, "%s\n", "INVALID_ARGS: Entered argumets is invalid");
+	}
 }
