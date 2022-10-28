@@ -163,9 +163,11 @@ int get_extreme_heap(employee **worker, fib_heap **heap, int (*cmp)(employee*, e
 				node->next = NULL;
 				push_back(heap, node, cmp);
 			} else {
+				//почистить
 				return NO_MEMORY;
 			}
 		} else {
+			//почистить
 			return NO_MEMORY;
 		}
 	}
@@ -177,6 +179,19 @@ int get_extreme_heap(employee **worker, fib_heap **heap, int (*cmp)(employee*, e
 	free((*heap)->extreme->tree);
 	delete_node(heap, (*heap)->extreme, cmp);
 	transform_to_bin_heap(heap, cmp);
+
+	return SUCCESS;
+}
+
+int sort(fib_heap **heap, employee ***workers, int count_workers, int (*cmp)(employee*, employee*)) {
+	int exit_code = 0;
+
+	for (int i = 0; i < count_workers; i++) {
+		exit_code = get_extreme_heap(&(*workers)[i], heap, cmp);
+		if (exit_code != SUCCESS) {
+			return exit_code;
+		}
+	}
 
 	return SUCCESS;
 }

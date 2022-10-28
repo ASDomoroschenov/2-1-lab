@@ -239,6 +239,21 @@ int get_workers(char *file_name, employee ***workers, int *size) {
 	return FILE_DIDNT_OPEN;
 }
 
+int write_in_file(char *name_file, employee **workers, int count_workers) {
+	FILE *file = NULL;
+
+	if ((file = fopen(name_file, "w")) != NULL) {
+		for (int i = 0; i < count_workers; i++) {
+			fprintf(file, "%d %s %s %lf\n", workers[i]->id, workers[i]->name, workers[i]->surname, workers[i]->wage);
+		}
+		fclose(file);
+	} else {
+		return FILE_DIDNT_OPEN;
+	}
+
+	return SUCCESS;
+}
+
 void free_worker(employee **item) {
 	if (*item) {
 		if ((*item)->name) {

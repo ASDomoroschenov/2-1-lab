@@ -28,6 +28,7 @@ int check_surname(char*);
 int check_wage(char*);
 int get_employee_info(char*, employee**);
 int get_workers(char*, employee***, int*);
+int write_in_file(char*, employee**, int);
 void free_worker(employee**);
 void free_arr_workers(employee***, int);
 void output_workers(employee**, int);

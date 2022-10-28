@@ -48,27 +48,17 @@ int main(int argc, char *argv[]) {
 			exit_code = get_heap(&heap, workers, count_workers, cmp[check]);
 
 			if (exit_code == SUCCESS) {
-				employee *worker = NULL;
-				FILE *output = NULL;
-
-				if ((output = fopen(argv[3], "w")) != NULL) {
-					for (int i = 0; i < count_workers; i++) {
-						exit_code = get_extreme_heap(&worker, &heap, cmp[check]);
-						
-						if (exit_code == SUCCESS) {
-							fprintf(output, "%d %s %s %lf\n", worker->id, worker->name, worker->surname, worker->wage);
-							free_worker(&worker);
-						} else {
-							print_error(exit_code);
-							return 0;
-						}
+				exit_code = sort(&heap, &workers, count_workers, cmp[check]);
+				if (exit_code == SUCCESS) {
+					exit_code = write_in_file(argv[3], workers, count_workers);
+					if (exit_code == SUCCESS) {
+						free_arr_workers(&workers, count_workers);
+						free(heap);
+					} else {
+						print_error(exit_code);
 					}
-
-					free(heap);
-					free(workers);
-					fclose(output);
 				} else {
-					print_error(FILE_DIDNT_OPEN);
+					print_error(exit_code);
 				}
 			} else {
 				print_error(exit_code);

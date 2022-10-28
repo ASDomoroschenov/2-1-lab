@@ -23,5 +23,6 @@ int get_heap(fib_heap**, employee **, int, int (*cmp)(employee*, employee*));
 int stop_delete(fib_heap*);
 int transform_to_bin_heap(fib_heap**, int (*cmp)(employee*, employee*));
 int get_extreme_heap(employee**, fib_heap**, int (*cmp)(employee*, employee*));
+int sort(fib_heap**, employee***, int, int (*cmp)(employee*, employee*));
 
 #endif // BIN_HEAP
