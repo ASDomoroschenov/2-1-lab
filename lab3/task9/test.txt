@@ -1,0 +1,9 @@
+    	 	 	pr ior=1 task=’Задание 1’
+prior=0 task=’Зад  	
+ание 3’
+ prior=5 task=’Задание 2’
+p rior=2 task=’Где лабы’
+prior=3 task=’Задание 3’
+pr
+ior=3 task=’Задание 3’
+prior= task=’Задание 5’

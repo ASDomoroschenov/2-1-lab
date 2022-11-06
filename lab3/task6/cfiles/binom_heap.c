@@ -230,3 +230,19 @@ int heap_sort(mail ***mails, int count_mails, int (*cmp)(mail*, mail*)) {
 
 	return SUCCESS;
 }
+
+void free_bin_heap(binom_heap **heap) {
+	if (*heap) {
+		node_list *node = (*heap)->root;
+
+		for (int i = 0; i < (*heap)->length; i++) {
+			free_bin_tree(&(node->tree->root));
+			free(node->tree);
+			node_list *temp = node;
+			node = node->next;
+			free(temp);
+		}
+
+		free(*heap);
+	}
+}

@@ -56,3 +56,15 @@ int merge(binom_tree **res_merge, binom_tree *tree_1, binom_tree *tree_2, int (*
 		}
 	}
 }
+
+void free_bin_tree(node_tree **root) {
+	if (*root) {
+		for (int i = 0; i < (*root)->degree; i++) {
+			free_bin_tree(&((*root)->childs[i]));
+		}
+		if ((*root)->childs) {
+			free((*root)->childs);
+		}
+		free(*root);
+	}
+}

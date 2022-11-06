@@ -17,7 +17,7 @@ int check_number(char *number) {
 		ptr++;
 	}
 
-	return 1;
+	return atoi(number) > 0;
 }
 
 int check_fullname(char *name, char *surname, char *patronymic) {
@@ -356,20 +356,24 @@ int get_list_citizen(char *name_file, list **list_citizen, int (*cmp)(citizen*, 
 }
 
 int find_citizen(list *list_citizen, citizen **item, char *surname, char *name, char *patronymic, char *date_birth, int gender, double avrg_income) {
-	list_node *node = list_citizen->root;
+	if (list_citizen) {
+		list_node *node = list_citizen->root;
 
-	while (node != NULL) {
-		if (strcmp(node->human->surname, surname) == 0 &&
-			strcmp(node->human->name, name) == 0 &&
-			strcmp(node->human->patronymic, patronymic) == 0 &&
-			strcmp(node->human->date_birth, date_birth) == 0 &&
-			node->human->gender == gender &&
-			fabs(node->human->avrg_income - avrg_income) < eps) {
-			(*item) = node->human;
+		while (node != NULL) {
+			if (strcmp(node->human->surname, surname) == 0 &&
+				strcmp(node->human->name, name) == 0 &&
+				strcmp(node->human->patronymic, patronymic) == 0 &&
+				strcmp(node->human->date_birth, date_birth) == 0 &&
+				node->human->gender == gender &&
+				fabs(node->human->avrg_income - avrg_income) < eps) {
+				(*item) = node->human;
 
-			return 1;
+				return 1;
+			}
+			node = node->next;
 		}
-		node = node->next;
+
+		return 0;
 	}
 
 	return 0;
@@ -430,23 +434,27 @@ int add_citizen(list **list_citizen, char *surname, char *name, char *patronymic
 }
 
 int delete_citizen(list **list_citizen, char *surname, char *name, char *patronymic, char *date_birth, int gender, double avrg_income) {
-	list_node *node = (*list_citizen)->root;
+	if (*list_citizen) {
+		list_node *node = (*list_citizen)->root;
 
-	while (node != NULL) {
-		if (strcmp(node->human->surname, surname) == 0 &&
-			strcmp(node->human->name, name) == 0 &&
-			strcmp(node->human->patronymic, patronymic) == 0 &&
-			strcmp(node->human->date_birth, date_birth) == 0 &&
-			node->human->gender == gender &&
-			fabs(node->human->avrg_income - avrg_income) < eps) {
-			delete_node(list_citizen, node);
+		while (node != NULL) {
+			if (strcmp(node->human->surname, surname) == 0 &&
+				strcmp(node->human->name, name) == 0 &&
+				strcmp(node->human->patronymic, patronymic) == 0 &&
+				strcmp(node->human->date_birth, date_birth) == 0 &&
+				node->human->gender == gender &&
+				fabs(node->human->avrg_income - avrg_income) < eps) {
+				delete_node(list_citizen, node);
 
-			return SUCCESS;
+				return SUCCESS;
+			}
+			node = node->next;
 		}
-		node = node->next;
+
+		return SUCCESS;
 	}
 
-	return SUCCESS;
+	return EMPTY_LIST;
 }
 
 void output_citizen(citizen *item, FILE *output) {
@@ -459,7 +467,7 @@ void output_citizen(citizen *item, FILE *output) {
 	fprintf(output, "%lf\n", item->avrg_income);
 }
 
-void output_list_citizens(list *list_citizen) {
+int output_list_citizens(list *list_citizen) {
 	if (list_citizen) {
 		list_node *node = list_citizen->root;
 
@@ -467,24 +475,32 @@ void output_list_citizens(list *list_citizen) {
 			output_citizen(node->human, stdout);
 			node = node->next;
 		}
-	}
-}
-
-int upload_list_file(list *list_citizen, char *name_file) {
-	FILE *file = NULL;
-
-	if ((file = fopen(name_file, "w")) != NULL) {
-		list_node *node = list_citizen->root;
-
-		while (node != NULL) {
-			output_citizen(node->human, file);
-			node = node->next;
-		}
-
-		fclose(file);
 
 		return SUCCESS;
 	}
 
-	return OPEN_FILE;
+	return EMPTY_LIST;
+}
+
+int upload_list_file(list *list_citizen, char *name_file) {
+	if (list_citizen) {
+		FILE *file = NULL;
+
+		if ((file = fopen(name_file, "w")) != NULL) {
+			list_node *node = list_citizen->root;
+
+			while (node != NULL) {
+				output_citizen(node->human, file);
+				node = node->next;
+			}
+
+			fclose(file);
+
+			return SUCCESS;
+		}
+
+		return OPEN_FILE;
+	}
+
+	return EMPTY_LIST;
 }

@@ -26,9 +26,16 @@ int main(int argc, char *argv[]) {
 				} else {
 					printf("CITIZEN WASN'T FOUND\n");
 				}
-				delete_citizen(&list_citizen, "Domoroschenov", "Alexandr", "Sergeevich", "03.11.2003", MALE, (double)11000.0);
+				exit_code = delete_citizen(&list_citizen, "Domoroschenov", "Alexandr", "Sergeevich", "03.11.2003", MALE, (double)11000.0);
 				printf("\nDELETE (Domoroschenov Alexandr Sergeevich 03.11.2003 MALE 11000):\n\n");
-				output_list_citizens(list_citizen);
+				if (exit_code == EMPTY_LIST) {
+					print_error(EMPTY_LIST);
+				} else {
+					if (output_list_citizens(list_citizen) == EMPTY_LIST) {
+						print_error(EMPTY_LIST);
+					}
+				}
+
 				printf("\nADD (Domoroschenov Alexandr Sergeevich 03.11.2003 MALE 11000)\n\n");
 				if (add_citizen(&list_citizen, "Domoroschenov", "Alexandr", "Sergeevich", "03.11.2003", MALE, (double)11000.0) == NO_MEMORY) {
 					print_error(NO_MEMORY);

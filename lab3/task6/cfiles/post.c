@@ -328,6 +328,13 @@ int cmp_mail_dates(mail *item_1, mail *item_2) {
 	return seconds_1 >= seconds_2;
 }
 
+int cmp_dates_str(string date_1, string date_2) {
+	unsigned long long seconds_1 = get_seconds_date_str(date_1);
+	unsigned long long seconds_2 = get_seconds_date_str(date_2);
+
+	return seconds_1 >= seconds_2;
+}
+
 int get_delivered_mails(char *datetime, post item, binom_heap **heap, int *size, int (*cmp_dates)(mail*, mail*)) {
 	string datetime_str;
 
@@ -336,7 +343,7 @@ int get_delivered_mails(char *datetime, post item, binom_heap **heap, int *size,
 	}
 
 	for (int i = 0; i < item.curr_size; i++) {
-		if (cmp_str(datetime_str, item.mails[i]->time_create, cmp) >= 0) {
+		if (cmp_dates_str(datetime_str, item.mails[i]->time_delivery) == 1) {
 			binom_tree *merge_tree = NULL;
 			node_list *add_node = NULL;
 			(*size)++;
@@ -371,7 +378,7 @@ int get_not_delivered_mails(char *datetime, post item, binom_heap **heap, int *s
 	}
 
 	for (int i = 0; i < item.curr_size; i++) {
-		if (cmp_str(datetime_str, item.mails[i]->time_create, cmp) == -1) {
+		if (cmp_dates_str(datetime_str, item.mails[i]->time_delivery) == 0) {
 			binom_tree *merge_tree = NULL;
 			node_list *add_node = NULL;
 			(*size)++;
@@ -398,12 +405,12 @@ int get_not_delivered_mails(char *datetime, post item, binom_heap **heap, int *s
 	return SUCCESS;
 }
 
-int output_find_mails(binom_heap **heap, int count_find, int (*cmp)(mail*, mail*)) {
+int output_find_mails(binom_heap *heap, int count_find, int (*cmp)(mail*, mail*)) {
 	int exit_code = 0;
 
 	for (int i = 0; i < count_find; i++) {
 		mail *item_mail = NULL;
-		exit_code = get_extreme_heap(&item_mail, heap, cmp);
+		exit_code = get_extreme_heap(&item_mail, &heap, cmp);
 		if (exit_code != SUCCESS) {
 			return exit_code;
 		}

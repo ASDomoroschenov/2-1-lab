@@ -7,7 +7,8 @@ enum ERRORS {
 	INVALID_CITIZEN = -4,
 	OPEN_FILE = -5,
 	INVALID_ARGS = -6,
-	NOT_TXT_FILE = -7
+	NOT_TXT_FILE = -7,
+	EMPTY_LIST = -8
 };
 
 enum sex {

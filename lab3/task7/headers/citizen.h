@@ -17,7 +17,7 @@ int find_citizen(list*, citizen**, char*, char*, char*, char*, int, double);
 int add_citizen(list**, char*, char*, char*, char*, int, double);
 int delete_citizen(list**, char*, char*, char*, char*, int, double);
 void output_citizen(citizen*, FILE*);
-void output_list_citizens(list*);
+int output_list_citizens(list*);
 int upload_list_file(list*, char*);
 
 #endif // CITIZEN_H

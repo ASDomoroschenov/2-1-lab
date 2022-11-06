@@ -100,19 +100,8 @@ int run_find_delivery(char *datetime, post item) {
 		return EMPTY_MAILS;
 	}
 
-	if (get_str(&datetime, stdin) == NO_MEMORY ||
-		strip(&datetime) == NO_MEMORY) {
-		return NO_MEMORY;
-	}
-
 	if (!check_datetime(datetime)) {
-		free(datetime);
 		return INVALID_DATETIME;
-	}
-
-	if (correct_date(&datetime) == NO_MEMORY) {
-		free(datetime);
-		return NO_MEMORY;
 	}
 
 	binom_heap *heap = NULL;
@@ -122,9 +111,12 @@ int run_find_delivery(char *datetime, post item) {
 		return NO_MEMORY;
 	}
 
-	output_find_mails(&heap, count_finds, cmp_mail_dates);
-	free(heap);
-	free(datetime);
+	if (!heap) {
+		return EMPTY_MAILS;
+	}
+
+	output_find_mails(heap, count_finds, cmp_mail_dates);
+	free_bin_heap(&heap);
 
 	return SUCCESS;
 }
@@ -134,31 +126,22 @@ int run_find_not_delivery(char *datetime, post item) {
 		return EMPTY_MAILS;
 	}
 
-	if (get_str(&datetime, stdin) == NO_MEMORY ||
-		strip(&datetime) == NO_MEMORY) {
-		return NO_MEMORY;
-	}
-
 	if (!check_datetime(datetime)) {
-		free(datetime);
 		return INVALID_DATETIME;
-	}
-
-	if (correct_date(&datetime) == NO_MEMORY) {
-		free(datetime);
-		return NO_MEMORY;
 	}
 
 	binom_heap *heap = NULL;
 	int count_finds = 0;
-
 	if (get_not_delivered_mails(datetime, item, &heap, &count_finds, cmp_mail_dates) == NO_MEMORY) {
 		return NO_MEMORY;
 	}
 
-	output_find_mails(&heap, count_finds, cmp_mail_dates);
-	free(heap);
-	free(datetime);
+	if (!heap) {
+		return EMPTY_MAILS;
+	}
+
+	output_find_mails(heap, count_finds, cmp_mail_dates);
+	free_bin_heap(&heap);
 
 	return SUCCESS;	
 }

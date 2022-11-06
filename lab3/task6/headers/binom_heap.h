@@ -16,5 +16,6 @@ int stop_delete(binom_heap*);
 int transform_to_bin_heap(binom_heap**, int (*cmp)(mail*, mail*));
 int get_extreme_heap(mail**, binom_heap**, int (*cmp)(mail*, mail*));
 int heap_sort(mail***, int, int (*cmp)(mail*, mail*));
+void free_bin_heap(binom_heap**);
 
 #endif // BIN_HEAP

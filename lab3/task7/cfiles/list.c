@@ -79,14 +79,24 @@ int add_node(list **list_citizen, citizen *item, int (*cmp)(citizen*, citizen*))
 }
 
 int delete_node(list **list_citizen, list_node *del_node) {
-	list_node *node = (*list_citizen)->root;
+	if (del_node != (*list_citizen)->root) {
+		list_node *node = (*list_citizen)->root;
 
-	while (node->next != del_node) {
-		node = node->next;
+		while (node->next != del_node) {
+			node = node->next;
+		}
+
+		node->next = del_node->next;
+		free_node(&del_node);
+	} else {
+		list_node *temp = (*list_citizen)->root;
+		(*list_citizen)->root = (*list_citizen)->root->next;
+		free_node(&temp);
+		if (!(*list_citizen)->root) {
+			free(*list_citizen);
+			*list_citizen = NULL;
+		}
 	}
-
-	node->next = del_node->next;
-	free_node(&del_node);
 }
 
 void free_node(list_node **node) {

@@ -1,6 +1,0 @@
-Dobrynkina Natalya Victorovna 14.11.2000 FEMALE 12000.000000
-Dobrynkina Anna Victorovna 15.11.2000 FEMALE 12000.000000
-Oganova Kristina Arsenovna 22.06.2003 FEMALE 15000.000000
-Domoroschenov Danila Sergeevich 03.11.2003 MALE 10000.000000
-Domoroschenov Alexandr Sergeevich 03.11.2003 MALE 16000.000000
-Domoroschenov Alexandr Sergeevich 03.11.2003 MALE 11000.000000

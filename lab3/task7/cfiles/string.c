@@ -143,4 +143,7 @@ void print_error(int exit_code) {
 	if (exit_code == NOT_TXT_FILE) {
 		fprintf(stderr, "%s\n", "NOT_TXT_FILE: Argument is not text file");
 	}
+	if (exit_code == EMPTY_LIST) {
+		fprintf(stderr, "%s\n", "EMPTY_LIST: List is empty");
+	}
 }
