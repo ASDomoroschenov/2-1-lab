@@ -68,20 +68,34 @@ int push_back(List **list, char *str) {
 }
 
 int get_back(List **list) {
-	if (*list && (*list)->root) {
-		Node *node = (*list)->root;
-		Node *prev_node = NULL;
+	if (*list) {
+		if ((*list)->root) {
+			Node *node = (*list)->root;
+			Node *prev_node = NULL;
 
-		while (node->next != NULL) {
-			prev_node = node;
-			node = node->next;
+			while (node->next != NULL) {
+				prev_node = node;
+				node = node->next;
+			}
+
+			if (node == (*list)->root) {
+				free((*list)->root->key);
+				(*list)->root->key = NULL;
+				free((*list)->root);
+				(*list)->root = NULL;
+
+				return SUCCESS;
+			}
+
+			free(node->key);
+			node->key = NULL;
+			free(node);
+			node = NULL;
+
+			if (prev_node) {
+				prev_node->next = NULL;
+			}
 		}
-
-		free(node->key);
-		node->key = NULL;
-		free(node);
-		node = NULL;
-		prev_node->next = NULL;
 	}
 
 	return SUCCESS;

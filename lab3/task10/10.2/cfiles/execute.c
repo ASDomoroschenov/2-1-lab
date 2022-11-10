@@ -25,7 +25,7 @@ int save_in_file(char *name_file, List **list) {
 }
 
 int delete_instructions(List **list, int count) {
-	if (*list) {
+	if (*list && (*list)->root) {
 		for (int i = 0; (*list)->root && i < count; i++) {
 			get_back(list);
 		}
@@ -63,6 +63,7 @@ int instruction_processing(char *name_file, int count) {
 			}
 
 			if (strcmp(str, "DELETE") == 0) {
+				count_help--;
 				delete_instructions(&list, count / 2);
 			} else {
 				if (strcmp(str, "STOP") != 0) {
@@ -98,6 +99,7 @@ int instruction_processing(char *name_file, int count) {
 		}
 	} while (strcmp(str, "STOP") != 0);
 
+	free(str);
 	free_list(&list);
 
 	return SUCCESS;
