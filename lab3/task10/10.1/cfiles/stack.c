@@ -2,23 +2,6 @@
 #include <stdlib.h>
 #include "../headers/stack.h"
 
-int init_root_stack(Stack **stack, node_stack *init_node) {
-	if (!*stack) {
-		*stack = (Stack*)malloc(sizeof(Stack));
-
-		if (!*stack) {
-			return NO_MEMORY;
-		}
-	}
-
-	(*stack)->root = init_node;
-	(*stack)->top = init_node;
-	(*stack)->root->next = NULL;
-	(*stack)->root->prev = NULL;
-
-	return SUCCESS;
-}
-
 int init_node_stack(node_stack **init_node, node_tree *node) {
 	if (*init_node) {
 		free(*init_node);
@@ -33,7 +16,6 @@ int init_node_stack(node_stack **init_node, node_tree *node) {
 
 	(*init_node)->key_stack = node;
 	(*init_node)->next = NULL;
-	(*init_node)->prev = NULL;
 
 	return SUCCESS;
 }
@@ -47,37 +29,52 @@ int add_stack(Stack **stack, node_tree *node) {
 	}
 
 	if (!*stack) {
-		exit_code = init_root_stack(stack, add_node);
+		*stack = (Stack*)malloc(sizeof(Stack));
 
-		if (exit_code != SUCCESS) {
-			return exit_code;
+		if (!*stack) {
+			free(add_node);
+			add_node = NULL;
+
+			return NO_MEMORY;
 		}
 
+		(*stack)->top = add_node;
+	
 		return SUCCESS;
 	}
 
-	add_node->prev = (*stack)->top;
-	(*stack)->top->next = add_node;
+	add_node->next = (*stack)->top;
 	(*stack)->top = add_node;
 
 	return SUCCESS;
 }
 
 int pop_stack(Stack **stack) {
-	if ((*stack)->top != (*stack)->root) {
-		node_stack *temp = (*stack)->top;
+	if ((*stack)->top->next == NULL) {
+		free((*stack)->top);
+		(*stack)->top = NULL;
+		free(*stack);
+		*stack = NULL;
 
-		(*stack)->top = (*stack)->top->prev;
-		(*stack)->top->next = NULL;
+		return SUCCESS;
+	}
 
-		free(temp);
-		temp = NULL;
-	} else {
-		free((*stack)->root);
-		(*stack)->root = NULL;
+	node_stack *temp = (*stack)->top;
+
+	(*stack)->top = (*stack)->top->next;
+	free(temp);
+	temp = NULL;
+
+	return SUCCESS;
+}
+
+void free_stack(Stack **stack) {
+	if (*stack) {
+		while ((*stack)->top) {
+			pop_stack(stack);
+		}
+
 		free(*stack);
 		*stack = NULL;
 	}
-
-	return SUCCESS;
 }

@@ -22,12 +22,10 @@ typedef struct {
 
 typedef struct tag_node_stack {
 	struct tag_node_stack *next;
-	struct tag_node_stack *prev;
 	node_tree *key_stack;
 } node_stack;
 
 typedef struct {
-	node_stack *root;
 	node_stack *top;
 } Stack;
 

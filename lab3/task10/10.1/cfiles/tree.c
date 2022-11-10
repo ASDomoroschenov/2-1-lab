@@ -92,6 +92,9 @@ int make_tree(Tree **tree, char *str) {
 			exit_code = add_stack(&stack, node);
 			
 			if (exit_code != SUCCESS) {
+				free_tree(tree);
+				free_stack(&stack);
+
 				return exit_code;
 			}
 		} else {
@@ -106,6 +109,9 @@ int make_tree(Tree **tree, char *str) {
 					exit_code = add_node_subtree(&(stack->top->key_stack), *ptr);
 					
 					if (exit_code != SUCCESS) {
+						free_tree(tree);
+						free_stack(&stack);
+						
 						return exit_code;
 					}
 				}
