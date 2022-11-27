@@ -74,6 +74,7 @@ int get_priority(char symb) {
 		case '-': return 1;
 		case '*': return 2;
 		case '/': return 2;
+		case '%': return 2;
 		case '^': return 3;
 	}
 }
@@ -84,6 +85,7 @@ int is_operator(char symb) {
 		symb == '-' ||
 		symb == '*' ||
 		symb == '/' ||
+		symb == '%' ||
 		symb == '^') {
 		return 1;
 	}
@@ -243,6 +245,7 @@ double execute(double first, double second, char operator) {
 		case '-': return first - second;
 		case '*': return first * second;
 		case '/': return first / second;
+		case '%': return first % second;
 		case '^': return pow(first, second);  
 	}
 }
