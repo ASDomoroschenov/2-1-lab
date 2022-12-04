@@ -1,0 +1,3 @@
+(20+2 : 0 - INVALID_BRACKETS: The order of brackets is not respected in the expression
+(20+2 : 0 - INVALID_BRACKETS: The order of brackets is not respected in the expression
+(20+2 : 0 - INVALID_BRACKETS: The order of brackets is not respected in the expression

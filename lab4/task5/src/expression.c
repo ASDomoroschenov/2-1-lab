@@ -245,7 +245,7 @@ double execute(double first, double second, char operator) {
 		case '-': return first - second;
 		case '*': return first * second;
 		case '/': return first / second;
-		case '%': return first % second;
+		case '%': return (int)first % (int)second;
 		case '^': return pow(first, second);  
 	}
 }

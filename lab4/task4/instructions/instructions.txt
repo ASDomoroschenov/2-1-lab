@@ -1,0 +1,2 @@
+Load A, ./io/input.txt;
+Save A, ./io/output.txt;
