@@ -435,12 +435,15 @@ int execute(char *command, hash_table **table) {
 		check_Print_all
 	};
 
-
 	for (int i = 0; i < 12; i++) {
 		exit_code = check_funcs[i](command);
 
 		if (exit_code == SUCCESS) {
 			return exec_funcs[i](command, table);
+		} else {
+			if (exit_code == EMPTY_STRING) {
+				return exit_code;
+			}
 		}
 	}
 

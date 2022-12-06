@@ -40,7 +40,8 @@ int interpreter(int *line_error) {
 			if (str) {
 				exit_code = execute(str, &table);
 
-				if (exit_code != SUCCESS) {
+				if (exit_code != SUCCESS &&
+					exit_code != EMPTY_STRING) {
 					free(str);
 					fclose(file_instructions);
 					free_hash_table(&table);
@@ -50,8 +51,9 @@ int interpreter(int *line_error) {
 
 				free(str);
 				str = NULL;
-				(*line_error)++;
 			}
+
+			(*line_error)++;
 		}
 
 		fclose(file_instructions);

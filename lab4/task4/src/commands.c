@@ -111,24 +111,24 @@ int Load(char key, char *name_file, hash_table **table) {
 
 		fclose(read_file);
 
-		int *temp = (int*)realloc(array->data, sizeof(int) * array->size);
+		if (array->data) {
+			int *temp = (int*)realloc(array->data, sizeof(int) * array->size);
 
-		if (!temp) {
-			return NO_MEMORY;
-		}
+			if (!temp) {
+				return NO_MEMORY;
+			}
 
-		array->data = temp;
+			array->data = temp;
 
-		if (array->size != 0) {
 			exit_code = add_to_hash_table(key, array, table);
 
 			if (exit_code != SUCCESS) {
 				free(array->data);
 				free(array);
+				
 				return exit_code;
 			}
 		} else {
-			free(array->data);
 			free(array);
 
 			return HAVENT_VALIDATE_DATA;
@@ -211,12 +211,7 @@ int Concat(char key_1, char key_2, hash_table *table) {
 
 	item_1->data = temp;
 
-	int *check = memcpy(item_1->data + item_1->size, item_2->data, sizeof(int) * item_2->size);
-	
-	if (!check) {
-		free(temp);
-		return NO_MEMORY;
-	}
+	memcpy(item_1->data + item_1->size, item_2->data, sizeof(int) * item_2->size);
 	
 	item_1->size += item_2->size;
 
@@ -292,12 +287,7 @@ int Copy(char key_1, int left_board, int right_board, char key_2, hash_table **t
 		return NO_MEMORY;
 	}
 
-	int *check = memcpy(temp, h_item_1->value->data + left_board, sizeof(int) * new_size);
-
-	if (!check) {
-		free(temp);
-		return NO_MEMORY;
-	}
+	memcpy(temp, h_item_1->value->data + left_board, sizeof(int) * new_size);
 
 	hash_item *h_item_2 = get_item(key_2, *table);
 
