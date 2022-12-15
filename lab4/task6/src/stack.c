@@ -2,7 +2,20 @@
 #include <string.h>
 #include "../lib/stack.h"
 
-int init_node_stack(node_stack **init_node, void *data, int type) {
+int create_stack(stack_t **stack, enum TYPE type) {
+	*stack = (stack_t*)malloc(sizeof(stack_t));
+
+	if (!*stack) {
+		return NO_MEMORY;
+	}
+
+	(*stack)->top = NULL;
+	(*stack)->type = type;
+
+	return SUCCESS;
+}
+
+int init_node_stack(node_stack **init_node, void *data, enum TYPE type) {
 	if (!data) {
 		return EMPTY_STRING;
 	}
@@ -36,24 +49,12 @@ int init_node_stack(node_stack **init_node, void *data, int type) {
 	return SUCCESS;
 }
 
-int push(stack_t **stack, void *data, int type) {
+int push(stack_t **stack, void *data) {
 	node_stack *push_node = NULL;
-	int exit_code = init_node_stack(&push_node, data, type);
+	int exit_code = init_node_stack(&push_node, data, (*stack)->type);
 
 	if (exit_code != SUCCESS) {
 		return exit_code;
-	}
-
-	if (!*stack) {
-		*stack = (stack_t*)malloc(sizeof(stack_t));
-
-		if (!*stack) {
-			free(push_node);
-			return NO_MEMORY;
-		}
-
-		(*stack)->top = NULL;
-		(*stack)->type = type;
 	}
 
 	push_node->next = (*stack)->top;

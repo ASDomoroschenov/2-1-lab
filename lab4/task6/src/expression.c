@@ -47,8 +47,12 @@ int to_postfix(char *str, char **res_str) {
 	}
 
 	stack_t *stack = NULL;
-	int exit_code = 0;
 	char *token = NULL;
+	int exit_code = create_stack(&stack, STRING);
+
+	if (exit_code != SUCCESS) {
+		return exit_code;
+	}
 
 	for (int i = 0; i < strlen(str); i++) {
 		if (!isspace(str[i])) {
@@ -89,7 +93,7 @@ int to_postfix(char *str, char **res_str) {
 				}
 			} else {
 				if (token[0] == '(') {
-					exit_code = push(&stack, token, STRING);
+					exit_code = push(&stack, token);
 
 					if (exit_code != SUCCESS) {
 						free(*res_str);
@@ -134,7 +138,7 @@ int to_postfix(char *str, char **res_str) {
 								pop(&stack);
 							}
 
-							exit_code = push(&stack, token, STRING);
+							exit_code = push(&stack, token);
 
 							if (exit_code != SUCCESS) {
 								free(*res_str);

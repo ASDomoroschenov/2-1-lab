@@ -36,6 +36,12 @@ int make_bin_tree_exp(bin_tree **tree_exp, char *str) {
 		return exit_code;
 	}
 
+	exit_code = create_stack(&stack, NODE_BIN_TREE);
+
+	if (exit_code != SUCCESS) {
+		return exit_code;
+	}
+
 	int len = strlen(postfix);
 	node_bin_tree *node = NULL;
 	char *token = NULL;
@@ -74,7 +80,7 @@ int make_bin_tree_exp(bin_tree **tree_exp, char *str) {
 					return exit_code; 
 				}
 
-				exit_code = push(&stack, node, NODE_BIN_TREE);
+				exit_code = push(&stack, node);
 
 				if (exit_code != SUCCESS) {
 					free_stack(&stack);
@@ -104,7 +110,7 @@ int make_bin_tree_exp(bin_tree **tree_exp, char *str) {
 						pop(&stack);
 					}
 
-					exit_code = push(&stack, node, NODE_BIN_TREE);
+					exit_code = push(&stack, node);
 					
 					if (exit_code != SUCCESS) {
 						free_stack(&stack);
