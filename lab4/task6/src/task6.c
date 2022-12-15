@@ -17,27 +17,32 @@ int main(int argc, char *argv[]) {
 	if (argc > 1) {
 		if ((input_file = fopen(argv[1], "r")) != NULL) {
 			get_str(&str, input_file);
-			exit_code = strip(&str);
 
-			if (exit_code != SUCCESS) {
-				print_error(exit_code);
+			if (str) {
+				exit_code = strip(&str);
 
-				return exit_code;
+				if (exit_code != SUCCESS) {
+					print_error(exit_code);
+
+					return exit_code;
+				}
+
+				exit_code = make_table(str, &table, &variables);
+
+				if (exit_code != SUCCESS) {
+					print_error(exit_code);
+
+					return exit_code;
+				}
+
+				output_table(table, variables, str);
+
+				free(str);
+				free(variables.var_names);
+				free_table(&table);
+			} else {
+				print_error(EMPTY_STRING);
 			}
-
-			exit_code = make_table(str, &table, &variables);
-
-			if (exit_code != SUCCESS) {
-				print_error(exit_code);
-
-				return exit_code;
-			}
-
-			output_table(table, variables, str);
-
-			free(str);
-			free(variables.var_names);
-			free_table(&table);
 		} else {
 			print_error(CANT_OPEN_FILE);
 			return CANT_OPEN_FILE;

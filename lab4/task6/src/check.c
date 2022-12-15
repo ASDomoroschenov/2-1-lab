@@ -70,6 +70,7 @@ int check_binary(char *str, int pos) {
 		if (!isalpha(str[left_index]) &&
 			(str[left_index] != '0' ||
 			str[left_index] != '1')) {
+			printf("1\n");
 			return 0;
 		}
 	} else {

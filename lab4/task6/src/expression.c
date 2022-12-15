@@ -39,9 +39,6 @@ int to_postfix(char *str, char **res_str) {
 	if (!str) {
 		return EMPTY_STRING;
 	}
-	if (!check_expression(str)) {
-		return INVALID_EXPRESSION;
-	}
 	if (!check_brackets(str)) {
 		return INVALID_BRACKETS;
 	}

@@ -32,14 +32,14 @@ int compare(const void *item_1, const void *item_2) {
 }
 
 int get_variables(array_var_names *variables, char *str) {
-	int size = 0;
+	int size = 1;
 	variable *temp = NULL;
 	int len = strlen(str);
 
 	for (int i = 0; i < len; i++) {
 		if (isalpha(str[i])) {
 			if (binary_search(*variables, str[i]) < 0) {
-				if (variables->size == size) {
+				if (variables->size == size - 1) {
 					size *= 2;
 					temp = (variable*)realloc(variables->var_names, sizeof(variable) * size);
 
@@ -55,9 +55,9 @@ int get_variables(array_var_names *variables, char *str) {
 			}
 		}
 	}
-
+	
 	temp = (variable*)realloc(variables->var_names, sizeof(variable) * variables->size);
-
+	
 	if (!temp) {
 		return NO_MEMORY;
 	}
