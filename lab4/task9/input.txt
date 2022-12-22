@@ -1,0 +1,8 @@
+#define define using
+#define main std
+
+using namespace ban ;
+
+int std	() {
+
+}
