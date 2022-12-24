@@ -15,7 +15,7 @@ int main(int argc, char const *argv[]) {
 	key_t key_input = 11;
 	key_t key_output = 102;
 	message_buf rbuf;
-	hash_table table = {NULL, 0, 0, 0};
+	hash_table table = {NULL, 0, 0, 0}; // взял хеш-таблицу из 9 задания
 	peasant *user = NULL;
 	char *exit_code_str = NULL;
 	int exit_code = 0;
