@@ -11,4 +11,4 @@ $(EXECUTABLE): $(OBJECTS)
 	$(CC) $(OBJECTS) -o $(EXECUTABLE)
 
 clean:
-	rm -f ../src/*/*.o ../src/*.o $(EXECUTABLE)
+	rm -f ../../src/*/*.o ../*.o ../../server/*.o $(EXECUTABLE)
