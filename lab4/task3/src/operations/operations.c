@@ -6,26 +6,6 @@
 #include "../check/check.h"
 #include "../operations/operations.h"
 
-int get_operator(char *str, char **res) {
-	char *ptr = str;
-	int exit_code = 0;
-
-	while (!is_operator(*ptr)) {
-		ptr++;
-	}
-
-	if ((*ptr == '-' && *(ptr + 1) == '>') ||
-		(*ptr == '+' && *(ptr + 1) == '>') ||
-		(*ptr == '<' && *(ptr + 1) == '-') ||
-		(*ptr == '<' && *(ptr + 1) == '>')) {
-		exit_code = add_chr(res, 2, *ptr, *(ptr + 1));
-	} else {
-		exit_code = add_chr(res, 1, *ptr);
-	}
-
-	return exit_code;
-}
-
 int to_10(char *num_base, int base, int *res) {
 	char *ptr = num_base - 1;
 	int sign = 1;
@@ -115,7 +95,7 @@ int pier_arrow(int item_1, int item_2) {
 }
 
 int negation(int item_1, int item_2) {
-	return ~item_1;
+	return abs(~item_2);
 }
 
 int execute_operation(char *operator, int item_1, int item_2) {

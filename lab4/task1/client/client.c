@@ -8,8 +8,8 @@
 int main(int argc, char const *argv[]) {
 	int msqid_input = 0;
 	int msqid_output = 0;
-	key_t key_input = 102;
-	key_t key_output = 11;
+	key_t key_input = 103;
+	key_t key_output = 12;
 	message_buf rbuf;
 	FILE *read_file = NULL;
 	char *str = NULL;
@@ -36,14 +36,14 @@ int main(int argc, char const *argv[]) {
 	}
 
 	// запрашиваем ID
-	if ((exit_code = send(msqid_output, GET_ID, "GET_ID")) != SUCCESS) {
+	if ((exit_code = send_unix(msqid_output, GET_ID, "GET_ID")) != SUCCESS) {
 		print_error(exit_code);
 
 		return exit_code;
 	}
 
 	// ждем получения ID
-	if ((exit_code = recieve(msqid_input, PUT_ID, &rbuf, MSG_NOERROR)) != SUCCESS) {
+	if ((exit_code = recieve_unix(msqid_input, PUT_ID, &rbuf, MSG_NOERROR)) != SUCCESS) {
 		print_error(exit_code);
 
 		return exit_code;
@@ -62,7 +62,7 @@ int main(int argc, char const *argv[]) {
 			
 			if (str && !is_empty_str(str)) {
 				// отправляем команду на обработку серваку
-				if ((exit_code = send(msqid_output, id, str)) != SUCCESS) {
+				if ((exit_code = send_unix(msqid_output, id, str)) != SUCCESS) {
 					print_error(exit_code);
 					free(str);
 					str = NULL;
@@ -71,7 +71,7 @@ int main(int argc, char const *argv[]) {
 					return exit_code;
 				}
 				//ждем exit_code от сервака
-				if ((exit_code = recieve(msqid_input, id, &rbuf, MSG_NOERROR)) != SUCCESS) {
+				if ((exit_code = recieve_unix(msqid_input, id, &rbuf, MSG_NOERROR)) != SUCCESS) {
 					print_error(exit_code);
 					free(str);
 					str = NULL;
@@ -81,6 +81,7 @@ int main(int argc, char const *argv[]) {
 				}
 
 				exit_code = atol(rbuf.mtext);
+				reset(&rbuf);
 
 				if (exit_code != SUCCESS) {
 					printf("%d: %s - ", line, str);
@@ -93,8 +94,6 @@ int main(int argc, char const *argv[]) {
 				} else {
 					printf("%d: %s - SUCCESS\n", line, str);
 				}
-
-				reset(&rbuf);
 
 				free(str);
 				str = NULL;

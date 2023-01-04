@@ -88,6 +88,7 @@ int get_str_with_comments(char **str, FILE *read_file, char one_liner_comment, c
 		} else {
 			if (c == open_multiline_comment) {
 				in_comment++;
+
 				while (in_comment && (c = fgetc(read_file)) != EOF) {
 					if (c == '\n') {
 						(*line)++;
@@ -101,29 +102,38 @@ int get_str_with_comments(char **str, FILE *read_file, char one_liner_comment, c
 						}
 					}
 				}
+
+				if (in_comment != 0) {
+					(*line)++;
+
+					return INVALID_MULTILINE_COMMENT;
+				}
 			}
 		}
 
 		if (c != open_multiline_comment &&
 			c != one_liner_comment &&
 			c != close_multiline_comment &&
-			!isspace(c) &&
+			c != '\n' &&
 			c != EOF) {
 			if ((exit_code = join_symb(c, str, &size)) != SUCCESS) {
 				return exit_code;
 			}
 		}
 
-		if ((c == '\n' || c == EOF) && *str) {
+		if (c == '\n' || c == EOF) {
 			(*line)++;
-			temp_line = (char*)realloc(*str, sizeof(char) * (strlen(*str) + 1));
+			
+			if (*str) {
+				temp_line = (char*)realloc(*str, sizeof(char) * (strlen(*str) + 1)); // утечка?
 
-			if (!temp_line) {
-				return NO_MEMORY;
+				if (!temp_line) {
+					return NO_MEMORY;
+				}
+
+				*str = temp_line;
+				read_line++;
 			}
-
-			*str = temp_line;
-			read_line++;
 		}
 	}
 
@@ -307,7 +317,7 @@ int add_chr(char **str, int count, ...) {
 	return SUCCESS;
 }
 
-long to_str(long num, char **str) {
+int to_str(int num, char **str) {
 	int size = 0;
 	int exit_code = 0;
 	int abs_num = abs(num);

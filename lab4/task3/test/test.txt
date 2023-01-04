@@ -1,10 +1,5 @@
-read(a, 10); %hello world!
-{
-	1231 321 321 321
-	 12
-	  3
-	  21 1
-}
-read(b, 10);
-c := \a;
-write(c, 10);
+a := 1000;
+read(b, 2);
+read(a, 8);
+c := b + a;
+write(c, 2);

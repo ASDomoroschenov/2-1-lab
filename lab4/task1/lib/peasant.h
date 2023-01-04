@@ -11,6 +11,7 @@ int take(peasant**, char*);
 int move(peasant**);
 int put(peasant**);
 int check_coasts(peasant**);
+int execute_command(char*, peasant**);
 int output_user(peasant*);
 int free_user(peasant**);
 

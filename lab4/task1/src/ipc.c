@@ -4,9 +4,8 @@
 #include <time.h>
 #include "../lib/ipc.h"
 
-int send(int qid, int msgtype, char *message) {
+int send_unix(int qid, int msgtype, char *message) {
 	message_buf msg;
-	int exit_code = 0;
 	msg.mtype = msgtype;
 	strcpy(msg.mtext, message);
 
@@ -20,7 +19,7 @@ int send(int qid, int msgtype, char *message) {
 	return SUCCESS;
 }
 
-int recieve(int qid, int msgtype, message_buf *msg, int flags) {
+int recieve_unix(int qid, int msgtype, message_buf *msg, int flags) {
 	if (msgrcv(qid, (void*)msg, MSGMAX, msgtype, flags) == -1) {
 		if (errno != ENOMSG) { // если не ошибка об отсутствии сообщений в очереди
 			return MSG_RCV;
@@ -41,7 +40,7 @@ long put_id_msg(int qid) {
 
 	to_str(id_long, &id_str);
 
-	if ((exit_code = send(qid, PUT_ID, id_str)) != SUCCESS) {
+	if ((exit_code = send_unix(qid, PUT_ID, id_str)) != SUCCESS) {
 		return exit_code;
 	}
 	

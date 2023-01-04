@@ -9,5 +9,6 @@ int check_read(char*);
 int check_write(char*);
 int check_expression(char*);
 int is_binary_exp(char*);
+int is_valid_num(char*, int); // (char *number, int base)
 
 #endif // CHECK_H

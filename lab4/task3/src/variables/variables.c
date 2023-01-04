@@ -8,20 +8,6 @@
 #include "../commands/commands.h"
 #include "../string/string.h"
 
-int get_next_var(char *str, int *index, char *res) {
-	int len_str = strlen(str);
-
-	for (;*index < len_str; (*index)++) {
-		if (isalpha(str[*index])) {
-			*res = str[*index];
-
-			return 1;
-		}
-	}
-
-	return 0;
-}
-
 int find_var(array_variables array, char name_var) {
 	int left = 0;
 	int right = array.current_size - 1;
@@ -76,9 +62,9 @@ int add_var(array_variables *array, char name_var, int value_var) {
 
 	array->vars[array->current_size].name = name_var;
 	array->vars[array->current_size].value = value_var;
+	array->current_size++;
 
 	qsort(array->vars, array->current_size, sizeof(variable), compare);
-	array->current_size++;
 
 	return SUCCESS;
 }
@@ -100,7 +86,12 @@ int compare(const void *item_1, const void *item_2) {
 }
 
 void output_vars(array_variables array) {
+	printf("VARS: ");
 	for (int i = 0; i < array.current_size; i++) {
-		printf("%c := %d\n", array.vars[i].name, array.vars[i].value);
+		if (i != array.current_size - 1) {
+			printf("%c := %d, ", array.vars[i].name, array.vars[i].value);
+		} else {
+			printf("%c := %d\n", array.vars[i].name, array.vars[i].value);
+		}
 	}
 }

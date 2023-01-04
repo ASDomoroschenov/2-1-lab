@@ -7,13 +7,12 @@
 #include "../lib/string.h"
 #include "../lib/hash_table.h"
 #include "../lib/peasant.h"
-#include "../lib/execute.h"
 
 int main(int argc, char const *argv[]) {
 	int msqid_input = 0;
 	int msqid_output = 0;
-	key_t key_input = 11;
-	key_t key_output = 102;
+	key_t key_input = 12;
+	key_t key_output = 103;
 	message_buf rbuf;
 	hash_table table = {NULL, 0, 0, 0}; // взял хеш-таблицу из 9 задания
 	peasant *user = NULL;
@@ -37,7 +36,7 @@ int main(int argc, char const *argv[]) {
 
 	while (1) {
 		//ждем любое сообщение из очереди
-		if ((exit_code = recieve(msqid_input, 0, &rbuf, IPC_NOWAIT)) == MSG_RCV) {
+		if ((exit_code = recieve_unix(msqid_input, 0, &rbuf, IPC_NOWAIT)) == MSG_RCV) {
 			print_error(exit_code);
 			free_table(&table);
 
@@ -72,7 +71,7 @@ int main(int argc, char const *argv[]) {
 					return exit_code;
 				}
 
-				if ((exit_code = send(msqid_output, id, exit_code_str)) != SUCCESS) {
+				if ((exit_code = send_unix(msqid_output, id, exit_code_str)) != SUCCESS) {
 					print_error(exit_code);
 					free_table(&table);
 
@@ -87,8 +86,10 @@ int main(int argc, char const *argv[]) {
 		}
 	}
 
-	msgctl(msqid_input, IPC_RMID, NULL);
-	msgctl(msqid_output, IPC_RMID, NULL);
+	#ifdef __linux__
+		msgctl(msqid_input, IPC_RMID, NULL);
+		msgctl(msqid_output, IPC_RMID, NULL);
+	#endif
 
 	return 0;
 }

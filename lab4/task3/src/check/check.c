@@ -51,10 +51,19 @@ int check_binary(char *str) {
 	}
 
 	if (!isalpha(*ptr)) {
-		return 0;
+		if (isdigit(*ptr)) {
+			while (!isspace(*ptr) && !is_operator(*ptr)) {
+				if (!isdigit(*ptr)) {
+					return 0;
+				}
+				ptr++;
+			}
+		} else {
+			return 0;
+		}
+	} else {
+		ptr++;
 	}
-
-	ptr++;
 
 	while (isspace(*ptr)) {
 		ptr++;
@@ -83,10 +92,19 @@ int check_binary(char *str) {
 	}
 
 	if (!isalpha(*ptr)) {
-		return 0;
+		if (isdigit(*ptr)) {
+			while (*ptr && !isspace(*ptr)) {
+				if (!isdigit(*ptr)) {
+					return 0;
+				}
+				ptr++;
+			}
+		} else {
+			return 0;
+		}
+	} else {
+		ptr++;
 	}
-
-	ptr++;
 
 	while (isspace(*ptr)) {
 		ptr++;
@@ -101,6 +119,7 @@ int check_unary(char *str) {
 	}
 
 	if (!strstr(str, ":=")) {
+
 		return 0;
 	}
 
@@ -120,21 +139,28 @@ int check_unary(char *str) {
 		ptr++;
 	}
 
-	if (*ptr != '!' && *ptr != '\\') {
-		return 0;
+	if (*ptr == '\\') {
+		ptr++;
 	}
-
-	ptr++;
 
 	while (isspace(*ptr)) {
 		ptr++;
 	}
 
 	if (!isalpha(*ptr)) {
-		return 0;
+		if (isdigit(*ptr)) {
+			while (*ptr && !isspace(*ptr)) {
+				if (!isdigit(*ptr)) {
+					return 0;
+				}
+				ptr++;
+			}
+		} else {
+			return 0;
+		}
+	} else {
+		ptr++;
 	}
-
-	ptr++;
 
 	while (isspace(*ptr)) {
 		ptr++;
@@ -308,4 +334,22 @@ int is_binary_exp(char *expression) {
 	}
 
 	return INVALID_EXPRESSION;
+}
+
+int is_valid_num(char *num, int base) {
+	char *ptr = num - 1;
+
+	while (*++ptr) {
+		if (isdigit(*ptr)) {
+			if (*ptr - '0' >= base) {
+				return 0;
+			}
+		} else {
+			if (toupper(*ptr) - 'A' + 10 > base) {
+				return 0;
+			}
+		}
+	}
+
+	return 1;
 }

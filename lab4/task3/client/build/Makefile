@@ -1,9 +1,9 @@
 CC=gcc
 CFLAGS=-c -Wall -std=c99
 LDFLAGS=-lm
-SOURCES=../src/string/string.c ../src/check/check.c ../src/operations/operations.c ../src/variables/variables.c ../src/commands/commands.c ../src/interpreter/interpreter.c ../src/task3.c
+SOURCES=../../src/string/string.c ../../src/check/check.c ../../src/sem/sem.c ../../src/shm/shm.c ../../src/operations/operations.c ../client.c
 OBJECTS=$(SOURCES:.c=.o)
-EXECUTABLE=task3
+EXECUTABLE=client
 
 all: $(SOURCES) $(EXECUTABLE)
 
