@@ -76,6 +76,7 @@ typedef struct {
 	array_variables array;
 	int id;
 	int trace;
+	char *file_name_trace;
 } client;
 
 typedef struct tag_node_list {
