@@ -16,57 +16,103 @@ int main(int argc, char *argv[]) {
 	client *user = NULL;
 	int user_id = 0;
 	int exit_code = 0;
-	int semid = 0;
-	int shmid = 0;
 	char *command = NULL;
 	char name_var = 0;
 	int value_var = 0;
 	char *base_var = NULL;
 	message_t *msg_p = NULL; // pointer for shared memory
 
-	if ((semid = sem_get(2, ACCESSES | IPC_CREAT)) < 0) {
-		print_error(SEM_GET, 0);
-		return SEM_GET;
-	}
+	#ifdef __linux__
+		int semid = 0;
+		int shmid = 0;
+	#else
+		HANDLE semids[2];
+    	HANDLE shmid = 0;
+	#endif
 
-	if ((shmid = shm_get(ACCESSES | IPC_CREAT)) < 0) {
-		print_error(SHM_GET, 0);
-		return SHM_GET;
-	}
+	#ifdef __linux__
+		if ((semid = sem_get_unix(2, ACCESSES | IPC_CREAT)) < 0) {
+			print_error(SEM_GET, 0);
+			return SEM_GET;
+		}
 
-	if (!shm_at(shmid, &msg_p)) {
-		print_error(SHM_AT, 0);
-		return SHM_AT;
-	}
+		if ((shmid = shm_get_unix(ACCESSES | IPC_CREAT)) < 0) {
+			print_error(SHM_GET, 0);
+			return SHM_GET;
+		}
+
+		if (!shm_at_unix(shmid, &msg_p)) {
+			print_error(SHM_AT, 0);
+			return SHM_AT;
+		}
+	#else
+		if ((exit_code = create_sem_win(&semids[0], "Sem_1")) != SUCCESS) {
+			printf("SemCreate error: %d\n", exit_code);
+
+			return exit_code;
+		}
+
+		if ((exit_code = create_sem_win(&semids[1], "Sem_2")) != SUCCESS) {
+			printf("SemCreate error: %d\n", exit_code);
+
+			return exit_code;
+		}
+
+		if ((exit_code = create_shm_win(&shmid, &msg_p, "SharedMemory")) != SUCCESS) {
+			printf("ShmCreate error: %d\n", exit_code);
+			
+			return exit_code;
+		}
+	#endif
 
 	if ((exit_code = create_table(&table, HASHSIZE)) != SUCCESS) {
 		msg_p->exit_code = exit_code;
+		
+		#ifdef __linux__
+			if (sem_rm_unix(semid)) {
+				print_error(SEM_RM, 0);
 
-		if (sem_rm(semid)) {
-			print_error(SEM_RM, 0);
-			return SEM_RM;
-		}
+				return SEM_RM;
+			}
 
-		shmdt(msg_p);
+			shmdt(msg_p);
 
-		if (shm_rm(shmid) < 0) {
-			print_error(SHM_RM, 0);
-			return SHM_RM;
-		}
+			if (shm_rm_unix(shmid) < 0) {
+				print_error(SHM_RM, 0);
+
+				return SHM_RM;
+			}
+		#else
+			CloseHandle(semids[0]);
+			CloseHandle(semids[1]);
+			UnmapViewOfFile(msg_p);
+			CloseHandle(shmid);
+
+			return exit_code;
+		#endif
 	}
 
+	#ifdef __linux__
+		sem_op_unix(semid, 0, 1);
+	#else
+		sem_op_win(&semids, -1, 0);
+	#endif
+
 	reset_msg(&msg_p);
-	sem_op(semid, 2, 0, 1);
 
 	while (1) {
 		if (msg_p->type == GET_ID || msg_p->type == RUN_COMMAND || msg_p->type == SET_VAR || msg_p->type == FINISH) {
-			sem_op(semid, 2, -1, 0);
+			#ifdef __linux__
+				sem_op_unix(semid, -1, 0);
+			#else
+				sem_op_win(&semids, -1, 0);
+			#endif
 
 			if (msg_p->type == GET_ID) {
 				user_id = generate_id(table);
 
-				if ((exit_code = add_user(user_id, msg_p->trace, &table)) != SUCCESS) {
-					send_exit_code(user_id, ERROR, exit_code, &msg_p);
+				if ((exit_code = add_user(user_id, msg_p->trace, NULL, &table)) != SUCCESS) {
+					send_exit_code(user_id, ERROR_MSG, exit_code, &msg_p);
 				} else {
 					send_exit_code(user_id, ADD_USER, exit_code, &msg_p);
 				}
@@ -76,7 +122,7 @@ int main(int argc, char *argv[]) {
 				user = get_user(msg_p->id, table);
 
 				if (!user) {
-					send_exit_code(user_id, ERROR, HAVENT_USER, &msg_p);
+					send_exit_code(user_id, ERROR_MSG, HAVENT_USER, &msg_p);
 				} else {
 					command = (char*)malloc(sizeof(char) * (strlen(msg_p->message) + 1));
 
@@ -88,28 +134,28 @@ int main(int argc, char *argv[]) {
 								free(command);
 								command = NULL;
 							}
-							send_exit_code(user->id, ERROR, exit_code, &msg_p);
+							send_exit_code(user->id, ERROR_MSG, exit_code, &msg_p);
 						} else {
 							if (!command || is_empty_str(command) || command[strlen(command) - 1] != ';') {
 								if (command) {
 									free(command);
 									command = NULL;
 								}
-								send_exit_code(user->id, ERROR, INVALID_EXPRESSION, &msg_p);
+								send_exit_code(user->id, ERROR_MSG, INVALID_EXPRESSION, &msg_p);
 							} else {
 								if ((exit_code = delete_sep(&command)) != SUCCESS) {
 									if (command) {
 										free(command);
 										command = NULL;
 									}
-									send_exit_code(user->id, ERROR, exit_code, &msg_p);
+									send_exit_code(user->id, ERROR_MSG, exit_code, &msg_p);
 								} else {
 									if (!command || is_empty_str(command)) {
 										send_exit_code(user->id, EMPTY_MSG, SUCCESS, &msg_p);
 									} else {
 										if (check_read(command)) {
 											if ((exit_code = get_name_base(command, &name_var, &base_var)) != SUCCESS) {
-												send_exit_code(user->id, ERROR, exit_code, &msg_p);
+												send_exit_code(user->id, ERROR_MSG, exit_code, &msg_p);
 											} else {
 												send_read(user->id, name_var, atoi(base_var), &msg_p);
 												free(base_var);
@@ -118,14 +164,14 @@ int main(int argc, char *argv[]) {
 										} else {
 											if (check_write(command)) {
 												if ((exit_code = get_name_base(command, &name_var, &base_var)) != SUCCESS) {
-													send_exit_code(user->id, ERROR, exit_code, &msg_p);
+													send_exit_code(user->id, ERROR_MSG, exit_code, &msg_p);
 												} else {
 													if ((exit_code = get_value_var(user->array, name_var, &value_var)) != SUCCESS) {
 														name_var = 0;
 														value_var = 0;
 														free(base_var);
 														base_var = NULL;
-														send_exit_code(user->id, ERROR, exit_code, &msg_p);
+														send_exit_code(user->id, ERROR_MSG, exit_code, &msg_p);
 													} else {
 														send_write(user->id, name_var, value_var, atoi(base_var), &msg_p);
 														name_var = 0;
@@ -137,12 +183,12 @@ int main(int argc, char *argv[]) {
 											} else {
 												if (check_binary(command) || check_unary(command)) {
 													if ((exit_code = set_var(&(user->array), command)) != SUCCESS) {
-														send_exit_code(user->id, ERROR, exit_code, &msg_p);
+														send_exit_code(user->id, ERROR_MSG, exit_code, &msg_p);
 													} else {
 														send_exit_code(user->id, VAR_SETED, exit_code, &msg_p);
 													}
 												} else {
-													send_exit_code(user->id, ERROR, INVALID_EXPRESSION, &msg_p);
+													send_exit_code(user->id, ERROR_MSG, INVALID_EXPRESSION, &msg_p);
 												}
 											}
 										}
@@ -156,14 +202,14 @@ int main(int argc, char *argv[]) {
 							}
 						}
 					} else {
-						send_exit_code(user->id, ERROR, NO_MEMORY, &msg_p);
+						send_exit_code(user->id, ERROR_MSG, NO_MEMORY, &msg_p);
 					}
 				}
 			}
 
 			if (msg_p->type == SET_VAR) {
 				if ((exit_code = set_value(&(user->array), msg_p->name_var, msg_p->value_var)) != SUCCESS) {
-					send_exit_code(user->id, ERROR, exit_code, &msg_p);
+					send_exit_code(user->id, ERROR_MSG, exit_code, &msg_p);
 				} else {
 					send_exit_code(user->id, VAR_SETED, exit_code, &msg_p);
 				}
@@ -171,13 +217,17 @@ int main(int argc, char *argv[]) {
 
 			if (msg_p->type == FINISH) {
 				if ((exit_code = delete_user(msg_p->id, &table)) != SUCCESS) {
-					send_exit_code(msg_p->id, ERROR, exit_code, &msg_p);
+					send_exit_code(msg_p->id, ERROR_MSG, exit_code, &msg_p);
 				} else {
 					send_exit_code(msg_p->id, DELETED, exit_code, &msg_p);
 				}
 			}
 
-			sem_op(semid, 2, 1, 1);
+			#ifdef __linux__
+				sem_op_unix(semid, 1, 1);
+			#else
+				sem_op_win(&semids, 1, 1);
+			#endif
 		}
 	}
 

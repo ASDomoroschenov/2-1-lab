@@ -5,9 +5,9 @@
 #include "../list/list.h"
 
 int hash(int, int);
-int create_user(client**, int, int);
+int create_user(client**, int, int, char*);
 int create_table(hash_table*, int);
-int add_user(int, int, hash_table*);
+int add_user(int, int, char*, hash_table*);
 int delete_user(int, hash_table*);
 void set_min_max_size_list(hash_table*);
 client *get_user(int, hash_table);

@@ -4,15 +4,53 @@
 #include <string.h>
 #include "shm.h"
 
-int shm_get(int flags) {
-	return shmget(SHM_KEY, sizeof(message_t), flags);
-}
+#ifdef __linux__
+	int shm_get_unix(int flags) {
+		return shmget(SHM_KEY, sizeof(message_t), flags);
+	}
 
-message_t *shm_at(int shmid, message_t **msg_p) {
-	*msg_p = (message_t*)shmat(shmid, 0, 0);
+	message_t *shm_at_unix(int shmid, message_t **msg_p) {
+		*msg_p = (message_t*)shmat(shmid, 0, 0);
 
-	return *msg_p;
-}
+		return *msg_p;
+	}
+
+	int shm_rm_unix(int shmid) {
+		return shmctl(shmid, IPC_RMID, NULL);
+	}
+#else
+	int create_shm_win(HANDLE *shmid, message_t **msg_p, char *name) {
+		*shmid = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, sizeof(message_t), name);
+		
+		if (!*shmid) {
+			return GetLastError();
+		}
+
+		*msg_p = (message_t*)MapViewOfFile(*shmid, FILE_MAP_READ | FILE_MAP_WRITE, 0, 0, 0);
+
+		if (!*msg_p) {
+			return GetLastError();
+		}
+
+		return SUCCESS;
+	}
+
+	int open_shm_win(HANDLE *shmid, message_t **msg_p, char *name) {
+		*shmid = OpenFileMapping(FILE_MAP_ALL_ACCESS, FALSE, name);
+
+		if (!*shmid) {
+			return GetLastError();
+		}
+
+		*msg_p = (message_t*)MapViewOfFile(*shmid, FILE_MAP_READ | FILE_MAP_WRITE, 0, 0, 0);
+
+		if (!*msg_p) {
+			return GetLastError();
+		}
+
+		return SUCCESS;
+	}
+#endif
 
 int send_msg(int id, int type, int trace, int exit_code, char name_var, int value_var, int base_var, char *message, message_t **msg_p) {
 	reset_msg(msg_p);
@@ -70,8 +108,4 @@ int reset_msg(message_t **msg_p) {
 	(*msg_p)->base_var = 0;
 
 	return SUCCESS;
-}
-
-int shm_rm(int shmid) {
-	return shmctl(shmid, IPC_RMID, NULL);
 }

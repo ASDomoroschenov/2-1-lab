@@ -8,16 +8,26 @@ int hash(int id, int table_size) {
 	return id % table_size;
 }
 
-int create_user(client **user, int id, int trace) {
+int create_user(client **user, int id, int trace, char *file_name_trace) {
 	(*user) = (client*)malloc(sizeof(client));
 
 	if (!(*user)) {
 		return NO_MEMORY;
 	}
 
-	(*user)->line_error = 0;
+	if (file_name_trace && strlen(file_name_trace) != 0) {
+		(*user)->file_name_trace = (char*)malloc(sizeof(char) * (strlen(file_name_trace) + 1));
+
+		if (!(*user)->file_name_trace) {
+			return NO_MEMORY;
+		}
+
+		strcpy((*user)->file_name_trace, file_name_trace);
+	} else {
+		(*user)->file_name_trace = NULL;
+	}
+
 	(*user)->id = id;
-	(*user)->trace = trace;
 	(*user)->array.vars = NULL;
 	(*user)->array.current_size = 0;
 	(*user)->array.size = 0;
@@ -52,11 +62,11 @@ int create_table(hash_table *table, int hash_size) {
 	return SUCCESS;
 }
 
-int add_user(int id, int trace, hash_table *table) {
+int add_user(int id, int trace, char *file_name_trace, hash_table *table) {
 	int exit_code = 0;
 	client *user = NULL;
 
-	if ((exit_code = create_user(&user, id, trace)) != SUCCESS) {
+	if ((exit_code = create_user(&user, id, trace, file_name_trace)) != SUCCESS) {
 		return exit_code;
 	}
 

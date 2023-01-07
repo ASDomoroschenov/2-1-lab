@@ -1,14 +1,20 @@
 #ifndef TYPES_H
 #define TYPES_H
 
-#include <sys/types.h>
-#include <sys/ipc.h>
-#include <sys/sem.h>
-#include <sys/shm.h>
+#ifdef __linux__
+	#include <sys/types.h>
+	#include <sys/ipc.h>
+	#include <sys/sem.h>
+	#include <sys/shm.h>
+#else
+	#include <windows.h>
+#endif
 #include <stdio.h>
 
-#define ACCESSES 0666 // the access rights for *get
-#define HASHSIZE 128
+#define ACCESSES	0666 	// the access rights for *get
+#define HASHSIZE	128		// size of hash table
+#define STRSIZE 	128		// max length of message  
+#define SHM_KEY		20 		// key for shmget
 
 enum ERRORS {
 	SUCCESS 					= -1,
@@ -40,9 +46,20 @@ enum CODE_ANS {
 	EXIT_CODE 	= 8,
 	VAR_SETED 	= 9,
 	DELETED 	= 10,
-	ERROR 		= 11,
+	ERROR_MSG 		= 11,
 	EMPTY_MSG 	= 12
 };
+
+typedef struct {
+	int id;
+	int type;
+	int trace;
+	int exit_code;
+	char name_var;
+	int value_var;
+	int base_var;
+	char message[STRSIZE];
+} message_t;
 
 typedef struct {
 	char name;
@@ -58,6 +75,7 @@ typedef struct {
 typedef struct {
 	array_variables array;
 	int id;
+	int trace;
 } client;
 
 typedef struct tag_node_list {
