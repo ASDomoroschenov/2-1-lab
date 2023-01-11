@@ -1,0 +1,4 @@
+in(test_1);
+input(test_2); 
+mult(test_1,test_2)->test_3;  
+print(test_3);

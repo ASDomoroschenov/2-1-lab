@@ -1,0 +1,12 @@
+right= #это комментарий
+add sum
+op()
+#mult prod и это тоже комментарий
+[sub minus
+pow ^ и это...]
+div /
+rem %
+xor <>
+input in
+output print
+= ->
