@@ -57,6 +57,41 @@ int to_base(int num, int base, char **res) {
 	return SUCCESS;
 }
 
+int input(int notation, int *res) {
+	char *number = NULL;
+	int exit_code = 0;
+
+	*res = 0;
+
+	if ((exit_code = get_str(&number, stdin)) != SUCCESS) {
+		return exit_code;
+	}
+
+	if (!number || is_empty_str(number)) {
+		if (number) {
+			free(number);
+		}
+
+		return INVALID_NUMBER;
+	} 
+
+	if (!check_number_notation(number, notation)) {
+		free(number);
+
+		return INVALID_NUMBER; 
+	}
+
+	if ((exit_code = to_10(number, notation, res)) != SUCCESS) {
+		free(number);
+
+		return exit_code;
+	}
+
+	free(number);
+
+	return SUCCESS;
+}
+
 int _add_(int val_1, int val_2) {
 	return val_1 + val_2;
 }

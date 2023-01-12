@@ -12,6 +12,7 @@ typedef int (*operation)(int, int);
 
 int to_10(char*, int, int*); // (str_num, base_str_num, res)
 int to_base(int, int, char**); // (num, base, res)
+int input(int, int*);
 int _add_(int, int);
 int _mult_(int, int);
 int _sub_(int, int);

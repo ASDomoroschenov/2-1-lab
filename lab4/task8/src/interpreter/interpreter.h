@@ -9,6 +9,6 @@
 #include "../check/check.h"
 
 int delete_sep(char**);
-int interpreter(char*, char*, int*, char**);
+int interpreter(char*, char*, int*, char**, int);
 
 #endif // INTERPRETER_H

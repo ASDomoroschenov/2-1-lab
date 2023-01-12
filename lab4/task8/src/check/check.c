@@ -4,6 +4,21 @@
 #include <ctype.h>
 #include "check.h"
 
+int check_number_notation(char *number, int notation) {
+	char *ptr = number - 1;
+	int tmp = 0;
+
+	while (*++ptr) {
+		tmp = isdigit(*ptr) ? *ptr - '0' : toupper(*ptr) - 'A' + 10;
+
+		if (tmp >= notation) {
+			return 0;
+		}
+	}
+
+	return 1;
+}
+
 int check_name_var(char *name) {
 	int count_letters = 0;
 

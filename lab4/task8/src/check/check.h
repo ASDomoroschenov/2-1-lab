@@ -6,6 +6,7 @@
 #include "../gets/gets.h"
 #include "../configuration/configuration.h"
 
+int check_number_notation(char*, int);
 int check_name_var(char*);
 int check_binary_before(char*, char*);
 int check_binary_middle(char*, char*);

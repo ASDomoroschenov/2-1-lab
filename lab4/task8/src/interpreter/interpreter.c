@@ -27,7 +27,7 @@ int delete_sep(char **str) {
 	return SUCCESS;
 }
 
-int interpreter(char *file_name, char *file_name_config, int *line_error, char **file_error) {
+int interpreter(char *file_name, char *file_name_config, int *line_error, char **file_error, int base) {
 	FILE *read_file = NULL;
 	char *str = NULL;
 	array_variables array = {NULL, 0, 0};
@@ -35,6 +35,7 @@ int interpreter(char *file_name, char *file_name_config, int *line_error, char *
 	int exit_code = 0;
 	int result = 0;
 	char *var_save = NULL;
+	char *num_base = NULL;
 	int have_var = 0;
 
 	if ((exit_code = fill_instructions(file_name_config, &config, line_error)) != SUCCESS) {
@@ -133,7 +134,16 @@ int interpreter(char *file_name, char *file_name_config, int *line_error, char *
 
 						if (exit_code == INPUT) {
 							printf("Input value of %s: ", var_save);
-							scanf("%d", &result);
+
+							if ((exit_code = input(base, &result)) != SUCCESS) {
+								free(str);
+								free(var_save);
+								free_vars(&array);
+								free_configuration(&config);
+								fclose(read_file);
+
+								return exit_code;
+							}
 
 							if (have_var < 0) {
 								if ((exit_code = add_var(&array, var_save, result)) != SUCCESS) {
@@ -168,7 +178,24 @@ int interpreter(char *file_name, char *file_name_config, int *line_error, char *
 									return exit_code;
 								}
 
-								printf("Value of %s: %d\n", var_save, result);
+								if ((exit_code = to_base(result, base, &num_base)) != SUCCESS) {
+									free(str);
+									free(var_save);
+									free_vars(&array);
+									free_configuration(&config);
+									fclose(read_file);
+
+									return exit_code;
+								}
+
+								if (is_empty_str(num_base)) {
+									printf("Value of %s: 0\n", var_save);
+								} else {
+									printf("Value of %s: %s\n", var_save, num_base);
+								}
+
+								free(num_base);
+								num_base = NULL;
 							} else {
 								if (exit_code == SUCCESS) {
 									if (have_var < 0) {
