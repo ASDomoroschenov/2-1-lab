@@ -135,8 +135,6 @@ int reverse(char **str) {
 
 int split_space(char *str, char ***tokens) {
 	char *ptr = str - 1;
-	char *token = NULL;
-	char *temp = NULL;
 	int exit_code = 0;
 	int tmp_size = 0;
 	int index = 0;
@@ -254,7 +252,6 @@ int add_chr(char **str, int count, ...) {
 long to_str(long num, char **str) {
 	int size = 0;
 	int exit_code = 0;
-	char *temp = NULL;
 	int abs_num = abs(num);
 
 	while (abs_num) {

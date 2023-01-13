@@ -62,7 +62,6 @@ int compare(const void *item_1, const void *item_2) {
 
 int have_object_coasts(peasant **user, char *object) {
 	char **objects = NULL;
-	int count_objects = 0;
 
 	if ((*user)->is_left_coast) {
 		objects = (*user)->left_coast;
@@ -338,8 +337,10 @@ int output_user(peasant *user) {
 		}
 		printf("\n\n");
 	}
+
+	return SUCCESS;
 }
 
 int free_user(peasant **user) {
-	
+	return SUCCESS;
 }
